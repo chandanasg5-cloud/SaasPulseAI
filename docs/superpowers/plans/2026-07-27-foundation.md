@@ -670,7 +670,7 @@ export function generateCompanies(count: number, seed: number, now: Date): Compa
       industry,
       companySize: randomInt(rng, minSize, maxSize),
       planTier,
-      // Finalized by generateSubscriptionsAndEvents (Task 5) once churn outcome is known.
+      // Finalized by generateSubscriptionsAndEvents (Task 6) once churn outcome is known.
       customerStage: "trial",
       signupDate: signupDate.toISOString().slice(0, 10),
     });
