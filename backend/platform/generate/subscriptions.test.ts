@@ -37,4 +37,31 @@ describe("generateSubscriptionsAndEvents", () => {
       expect(c.customerStage === "churned").toBe(churnedCompanyIds.has(c.id));
     }
   });
+
+  it("moves upgrade/downgrade events to a genuinely different tier along the ladder, and never downgrades a free-tier company", () => {
+    const TIER_INDEX: Record<string, number> = { free: 0, starter: 1, professional: 2, enterprise: 3 };
+    const { companies, healthProfiles } = generateCompanies(500, 27, now);
+    const result = generateSubscriptionsAndEvents(companies, healthProfiles, 28, now);
+
+    const upgrades = result.events.filter((e) => e.eventType === "upgrade");
+    const downgrades = result.events.filter((e) => e.eventType === "downgrade");
+    expect(upgrades.length + downgrades.length).toBeGreaterThan(0);
+
+    for (const e of upgrades) {
+      expect(e.previousPlan).not.toBeNull();
+      expect(e.newPlan).not.toBeNull();
+      expect(e.newPlan).not.toBe(e.previousPlan);
+      expect(TIER_INDEX[e.newPlan!]).toBe(TIER_INDEX[e.previousPlan!] + 1);
+      expect(e.mrrChange).toBeGreaterThan(0);
+    }
+
+    for (const e of downgrades) {
+      expect(e.previousPlan).not.toBeNull();
+      expect(e.newPlan).not.toBeNull();
+      expect(e.previousPlan).not.toBe("free");
+      expect(e.newPlan).not.toBe(e.previousPlan);
+      expect(TIER_INDEX[e.newPlan!]).toBe(TIER_INDEX[e.previousPlan!] - 1);
+      expect(e.mrrChange).toBeLessThan(0);
+    }
+  });
 });

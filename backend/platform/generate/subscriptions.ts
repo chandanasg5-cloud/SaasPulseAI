@@ -10,6 +10,18 @@ const MRR_BY_PLAN: Record<PlanTier, number> = {
   enterprise: 5000,
 };
 
+const TIER_ORDER: PlanTier[] = ["free", "starter", "professional", "enterprise"];
+
+function nextTierUp(tier: PlanTier): PlanTier {
+  const i = TIER_ORDER.indexOf(tier);
+  return TIER_ORDER[Math.min(i + 1, TIER_ORDER.length - 1)];
+}
+
+function nextTierDown(tier: PlanTier): PlanTier {
+  const i = TIER_ORDER.indexOf(tier);
+  return TIER_ORDER[Math.max(i - 1, 0)];
+}
+
 function monthsBetween(a: Date, b: Date): number {
   return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
 }
@@ -68,7 +80,7 @@ export function generateSubscriptionsAndEvents(
     const isChurned = monthsSinceSignup >= 1 && rng() < health.churnProbability * exposure;
 
     let currentMrr = baseMrr;
-    const currentPlan = company.planTier;
+    let currentPlan = company.planTier;
     let status: SubscriptionRow["status"] = monthsSinceSignup < 1 ? "trialing" : "active";
     let endDate: string | null = null;
 
@@ -77,33 +89,38 @@ export function generateSubscriptionsAndEvents(
 
     const canExpand =
       !isChurned && health.healthFactor >= 70 && monthsSinceSignup >= 3 && currentPlan !== "enterprise";
-    const canContract = !isChurned && health.healthFactor < 40 && monthsSinceSignup >= 3;
+    const canContract =
+      !isChurned && health.healthFactor < 40 && monthsSinceSignup >= 3 && currentPlan !== "free";
 
     if (canExpand && rng() < 0.2) {
       const upgradeDate = randomDateBetween(rng, midTenureFloor, now);
-      const newMrr = currentMrr * 1.5;
+      const newPlan = nextTierUp(currentPlan);
+      const newMrr = MRR_BY_PLAN[newPlan];
       events.push({
         id: nextEventId(),
         companyId: company.id,
         eventDate: upgradeDate.toISOString().slice(0, 10),
         eventType: "upgrade",
         previousPlan: currentPlan,
-        newPlan: currentPlan,
+        newPlan,
         mrrChange: newMrr - currentMrr,
       });
+      currentPlan = newPlan;
       currentMrr = newMrr;
     } else if (canContract && rng() < 0.2) {
       const downgradeDate = randomDateBetween(rng, midTenureFloor, now);
-      const newMrr = currentMrr * 0.6;
+      const newPlan = nextTierDown(currentPlan);
+      const newMrr = MRR_BY_PLAN[newPlan];
       events.push({
         id: nextEventId(),
         companyId: company.id,
         eventDate: downgradeDate.toISOString().slice(0, 10),
         eventType: "downgrade",
         previousPlan: currentPlan,
-        newPlan: currentPlan,
+        newPlan,
         mrrChange: newMrr - currentMrr,
       });
+      currentPlan = newPlan;
       currentMrr = newMrr;
     }
 
