@@ -107,4 +107,11 @@ describe("generateProductEvents", () => {
       expect(["desktop", "mobile", "tablet"]).toContain(e.deviceType);
     }
   });
+
+  it("throws when users array is empty", () => {
+    const { companies, healthProfiles } = generateCompanies(20, 59, now);
+    expect(() => {
+      generateProductEvents(companies, [], healthProfiles, 1000, 60, now);
+    }).toThrow("generateProductEvents requires a non-empty users array");
+  });
 });

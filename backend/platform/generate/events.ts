@@ -58,6 +58,10 @@ export function generateProductEvents(
   seed: number,
   now: Date,
 ): ProductEventRow[] {
+  if (users.length === 0) {
+    throw new Error("generateProductEvents requires a non-empty users array");
+  }
+
   const rng = mulberry32(seed);
   const healthByCompany = new Map(healthProfiles.map((h) => [h.companyId, h]));
   const windowStart = new Date(now);
