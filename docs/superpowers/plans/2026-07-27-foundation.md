@@ -146,7 +146,7 @@ describe("health", () => {
 
 - [ ] **Step 10: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/api.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/api.test.ts`
 Expected: FAIL — `./api` has no exported member `health` (module not found or missing export).
 
 - [ ] **Step 11: Write the health endpoint**
@@ -165,7 +165,7 @@ export const health = api(
 
 - [ ] **Step 12: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/api.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/api.test.ts`
 Expected: PASS
 
 - [ ] **Step 13: Verify the app runs under Encore**
@@ -220,7 +220,7 @@ describe("schema", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/schema.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/schema.test.ts`
 Expected: FAIL — table names missing (empty `migrations/` directory so far).
 
 - [ ] **Step 3: Write the migration**
@@ -333,7 +333,7 @@ CREATE INDEX ml_predictions_company_id_idx ON ml_predictions(company_id);
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/schema.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/schema.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -502,7 +502,7 @@ describe("randomDateBetween", () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/rng.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/rng.test.ts`
 Expected: FAIL — `./rng` module not found.
 
 - [ ] **Step 4: Write the RNG utilities**
@@ -545,7 +545,7 @@ export function randomDateBetween(rng: () => number, start: Date, end: Date): Da
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/rng.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/rng.test.ts`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -613,7 +613,7 @@ describe("generateCompanies", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/companies.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/companies.test.ts`
 Expected: FAIL — `./companies` module not found.
 
 - [ ] **Step 3: Write the generator**
@@ -684,7 +684,7 @@ export function generateCompanies(count: number, seed: number, now: Date): Compa
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/companies.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/companies.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -747,7 +747,7 @@ describe("generateUsers", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/users.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/users.test.ts`
 Expected: FAIL — `./users` module not found.
 
 - [ ] **Step 3: Write the generator**
@@ -809,7 +809,7 @@ export function generateUsers(companies: CompanyRow[], seed: number, now: Date):
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/users.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/users.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -880,7 +880,7 @@ describe("generateSubscriptionsAndEvents", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/subscriptions.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/subscriptions.test.ts`
 Expected: FAIL — `./subscriptions` module not found.
 
 - [ ] **Step 3: Write the generator**
@@ -1047,7 +1047,7 @@ export function generateSubscriptionsAndEvents(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/subscriptions.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/subscriptions.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1133,7 +1133,7 @@ describe("generateProductEvents", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/events.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/events.test.ts`
 Expected: FAIL — `./events` module not found.
 
 - [ ] **Step 3: Write the generator**
@@ -1242,7 +1242,7 @@ export function generateProductEvents(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/events.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/events.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1315,7 +1315,7 @@ describe("generateSupportTickets", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/tickets.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/tickets.test.ts`
 Expected: FAIL — `./tickets` module not found.
 
 - [ ] **Step 3: Write the generator**
@@ -1401,7 +1401,7 @@ export function generateSupportTickets(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/generate/tickets.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/generate/tickets.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1478,7 +1478,7 @@ describe("ensureSeeded", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/seed.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/seed.test.ts`
 Expected: FAIL — `./seed` module not found.
 
 - [ ] **Step 3: Write the seed orchestration**
@@ -1596,7 +1596,7 @@ function insertSupportTickets(rows: SupportTicketRow[]): Promise<void> {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/seed.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/seed.test.ts`
 Expected: PASS (this seeds the full 1000/5000/100000-row dataset into the local test database — allow it a little longer than the earlier unit tests).
 
 - [ ] **Step 5: Commit**
@@ -1661,7 +1661,7 @@ describe("metricsOverview", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/api.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/api.test.ts`
 Expected: FAIL — `companiesCount`, `listCompanies`, `metricsOverview` not exported from `./api`.
 
 - [ ] **Step 3: Add the endpoints**
@@ -1799,7 +1799,7 @@ Note: remove the duplicate `import { api } from "encore.dev/api"` already at the
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npx vitest run platform/api.test.ts`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test platform/api.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -2179,7 +2179,7 @@ uvicorn main:app --reload
 ## Tests
 
 ```bash
-cd backend && npm test
+cd backend && encore test
 cd ml-service && source .venv/bin/activate && pytest
 ```
 ```
@@ -2220,7 +2220,7 @@ yet called by the backend in Phase 1 — wired up starting Phase 5.
 
 - [ ] **Step 3: Run the full backend test suite**
 
-Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && npm test`
+Run: `cd "/Users/chandanagowda/Desktop/SaasPluseAI/backend" && encore test`
 Expected: all tests pass (schema, rng, companies, users, subscriptions, events, tickets, seed, api).
 
 - [ ] **Step 4: Run the frontend type check**
