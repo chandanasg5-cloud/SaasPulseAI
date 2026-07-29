@@ -1,9 +1,13 @@
-import { getCompanies, getMetricsOverview } from "@/lib/api";
+import { getCompanies, getExecutiveOverview } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { RevenueTrendChart } from "@/components/charts/RevenueTrendChart";
+import { CustomerGrowthChart } from "@/components/charts/CustomerGrowthChart";
+import { MrrWaterfallChart } from "@/components/charts/MrrWaterfallChart";
+import { SubscriptionBreakdownChart } from "@/components/charts/SubscriptionBreakdownChart";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-GB", {
@@ -13,14 +17,23 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export default async function DashboardPage() {
-  const [metrics, companies] = await Promise.all([getMetricsOverview(), getCompanies(25)]);
+function formatPercent(value: number): string {
+  return `${value.toFixed(1)}%`;
+}
 
-  const kpis = [
-    { label: "Total Companies", value: metrics.total_companies.toLocaleString() },
-    { label: "Total Users", value: metrics.total_users.toLocaleString() },
-    { label: "Product Events", value: metrics.total_events.toLocaleString() },
-    { label: "Current MRR", value: formatCurrency(metrics.current_mrr) },
+export default async function DashboardPage() {
+  const [overview, companies] = await Promise.all([getExecutiveOverview(), getCompanies(25)]);
+  const { kpis, charts } = overview;
+
+  const kpiTiles = [
+    { label: "MRR", value: formatCurrency(kpis.mrr) },
+    { label: "ARR", value: formatCurrency(kpis.arr) },
+    { label: "Revenue Growth", value: formatPercent(kpis.revenue_growth_pct) },
+    { label: "Customer Count", value: kpis.customer_count.toLocaleString() },
+    { label: "CAC", value: formatCurrency(kpis.cac) },
+    { label: "CLV", value: formatCurrency(kpis.clv) },
+    { label: "Churn Rate", value: formatPercent(kpis.churn_rate_pct) },
+    { label: "NRR", value: formatPercent(kpis.nrr_pct) },
   ];
 
   return (
@@ -28,7 +41,7 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-bold">SaaSPulse AI — Executive Overview</h1>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {kpis.map((kpi) => (
+        {kpiTiles.map((kpi) => (
           <Card key={kpi.label}>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
@@ -36,6 +49,44 @@ export default async function DashboardPage() {
             <CardContent className="text-2xl font-semibold">{kpi.value}</CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RevenueTrendChart data={charts.revenue_trend} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Customer Growth</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CustomerGrowthChart data={charts.customer_growth} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>MRR Waterfall (This Month)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MrrWaterfallChart data={charts.mrr_waterfall} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SubscriptionBreakdownChart data={charts.subscription_breakdown} />
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
