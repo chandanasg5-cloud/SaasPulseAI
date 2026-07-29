@@ -168,6 +168,8 @@ git add backend/platform/metrics/months.ts backend/platform/metrics/months.test.
 git commit -m "feat(backend): add month utility functions for metrics layer"
 ```
 
+**Addendum (added during Task 4's review):** `months.ts` also exports `parseLocalDate(dateStr: string): Date`, added to fix a real UTC-vs-local-time bug — DB date/timestamp columns come back as bare `"YYYY-MM-DD"` strings, and `new Date(str)` parses those as UTC midnight, while `startOfMonth`/`endOfMonth`/`trailingMonths` all build boundaries in local time via the `Date(year, month, day)` constructor form. Comparing a UTC-parsed instant against a local-time boundary silently misclassifies dates near month edges in any timezone west of UTC. **Every task from here on (5, 6, 7) must use `parseLocalDate` for every row-derived date field (`event_date`, `signup_date`, `end_date`, `month`) — never a raw `new Date(field)`.** This is already reflected in this plan's remaining code blocks.
+
 ---
 
 ### Task 3: Shared metrics row types + marketing spend generator
@@ -328,7 +330,7 @@ git commit -m "feat(backend): add shared metrics types and marketing spend gener
 - Test: `backend/platform/metrics/mrrWaterfall.test.ts`
 
 **Interfaces:**
-- Consumes: `SubscriptionEventRow` from Task 3; `trailingMonths`, `endOfMonth`, `startOfMonth`, `monthKey` from Task 2.
+- Consumes: `SubscriptionEventRow` from Task 3; `trailingMonths`, `endOfMonth`, `startOfMonth`, `monthKey`, `parseLocalDate` from Task 2.
 - Produces: `computeMrrTrend(events: SubscriptionEventRow[], now: Date, monthCount?: number): {month: string; mrr: number}[]`; `computeMrrWaterfall(events: SubscriptionEventRow[], now: Date): {starting_mrr, new_mrr, expansion_mrr, contraction_mrr, churned_mrr, ending_mrr}` — both consumed by Task 9's endpoint.
 
 - [ ] **Step 1: Write the failing tests**
@@ -417,7 +419,7 @@ Expected: FAIL — modules not found.
 ```ts
 // backend/platform/metrics/mrrTrend.ts
 import type { SubscriptionEventRow } from "./types";
-import { endOfMonth, monthKey, trailingMonths } from "./months";
+import { endOfMonth, monthKey, parseLocalDate, trailingMonths } from "./months";
 
 export interface MrrTrendPoint {
   month: string;
@@ -434,17 +436,19 @@ export function computeMrrTrend(
   return months.map((monthStart) => {
     const cutoff = endOfMonth(monthStart);
     const mrr = events
-      .filter((e) => new Date(e.event_date) <= cutoff)
+      .filter((e) => parseLocalDate(e.event_date) <= cutoff)
       .reduce((sum, e) => sum + e.mrr_change, 0);
     return { month: monthKey(monthStart), mrr };
   });
 }
 ```
 
+Note: `event_date` is a bare `"YYYY-MM-DD"` string from Postgres. `new Date(str)` parses that as UTC midnight, while every boundary in `months.ts` (`startOfMonth`, `endOfMonth`, `trailingMonths`) is built in local time — comparing a UTC-parsed instant against a local-time boundary silently misclassifies events near month edges in any timezone west of UTC. `parseLocalDate` (defined in `months.ts`, see Task 2) parses the string as a local calendar date instead, so it lines up with these boundaries. Use `parseLocalDate` for every row-derived date field in this plan (`event_date`, `signup_date`, `end_date`, `month`) — never a raw `new Date(field)`.
+
 ```ts
 // backend/platform/metrics/mrrWaterfall.ts
 import type { SubscriptionEventRow } from "./types";
-import { endOfMonth, startOfMonth } from "./months";
+import { endOfMonth, parseLocalDate, startOfMonth } from "./months";
 
 export interface MrrWaterfall {
   starting_mrr: number;
@@ -460,11 +464,11 @@ export function computeMrrWaterfall(events: SubscriptionEventRow[], now: Date): 
   const monthEnd = endOfMonth(now);
 
   const startingMrr = events
-    .filter((e) => new Date(e.event_date) < monthStart)
+    .filter((e) => parseLocalDate(e.event_date) < monthStart)
     .reduce((sum, e) => sum + e.mrr_change, 0);
 
   const inMonth = events.filter((e) => {
-    const d = new Date(e.event_date);
+    const d = parseLocalDate(e.event_date);
     return d >= monthStart && d <= monthEnd;
   });
 
@@ -511,7 +515,7 @@ git commit -m "feat(backend): add MRR trend and MRR waterfall metric functions"
 - Test: `backend/platform/metrics/subscriptionBreakdown.test.ts`
 
 **Interfaces:**
-- Consumes: `CompanyRow`, `SubscriptionRow` from Task 3; `trailingMonths`, `endOfMonth`, `monthKey` from Task 2.
+- Consumes: `CompanyRow`, `SubscriptionRow` from Task 3; `trailingMonths`, `endOfMonth`, `monthKey`, `parseLocalDate` from Task 2.
 - Produces: `computeCustomerGrowth(companies, subscriptions, now, monthCount?): {month, active_customers}[]`; `computeSubscriptionBreakdown(subscriptions): {plan_tier, count, mrr}[]` — both consumed by Task 9's endpoint.
 
 - [ ] **Step 1: Write the failing tests**
@@ -588,7 +592,7 @@ Expected: FAIL — modules not found.
 ```ts
 // backend/platform/metrics/customerGrowth.ts
 import type { CompanyRow, SubscriptionRow } from "./types";
-import { endOfMonth, monthKey, trailingMonths } from "./months";
+import { endOfMonth, monthKey, parseLocalDate, trailingMonths } from "./months";
 
 export interface CustomerGrowthPoint {
   month: string;
@@ -607,16 +611,18 @@ export function computeCustomerGrowth(
   return months.map((monthStart) => {
     const cutoff = endOfMonth(monthStart);
     const activeCount = companies.filter((c) => {
-      if (new Date(c.signup_date) > cutoff) return false;
+      if (parseLocalDate(c.signup_date) > cutoff) return false;
       const sub = subByCompany.get(c.id);
       if (!sub) return false;
       if (sub.status !== "canceled") return true;
-      return sub.end_date !== null && new Date(sub.end_date) > cutoff;
+      return sub.end_date !== null && parseLocalDate(sub.end_date) > cutoff;
     }).length;
     return { month: monthKey(monthStart), active_customers: activeCount };
   });
 }
 ```
+
+Use `parseLocalDate` (from `./months`, added in Task 2/4) for `signup_date` and `end_date` here — never a raw `new Date(field)`; see the addendum at the end of Task 2 for why.
 
 ```ts
 // backend/platform/metrics/subscriptionBreakdown.ts
@@ -672,7 +678,7 @@ git commit -m "feat(backend): add customer growth and subscription breakdown met
 - Test: `backend/platform/metrics/nrr.test.ts`
 
 **Interfaces:**
-- Consumes: `CompanyRow`, `SubscriptionRow`, `SubscriptionEventRow` from Task 3; `startOfMonth`, `endOfMonth` from Task 2.
+- Consumes: `CompanyRow`, `SubscriptionRow`, `SubscriptionEventRow` from Task 3; `startOfMonth`, `endOfMonth`, `parseLocalDate` from Task 2.
 - Produces: `computeChurnRate(companies, subscriptions, now): number` (a fraction, e.g. `0.05` for 5% — multiplied by 100 at the API layer in Task 9); `computeNrr(companies, events, now): number` (a ratio, e.g. `1.08` for 108% — also multiplied by 100 at the API layer) — both consumed by Task 9's endpoint, and `computeChurnRate`'s result is also consumed by Task 7's `computeClv`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -749,7 +755,7 @@ Expected: FAIL — modules not found.
 ```ts
 // backend/platform/metrics/churnRate.ts
 import type { CompanyRow, SubscriptionRow } from "./types";
-import { endOfMonth, startOfMonth } from "./months";
+import { endOfMonth, parseLocalDate, startOfMonth } from "./months";
 
 export function computeChurnRate(
   companies: CompanyRow[],
@@ -761,11 +767,11 @@ export function computeChurnRate(
   const subByCompany = new Map(subscriptions.map((s) => [s.company_id, s]));
 
   const activeAtMonthStart = companies.filter((c) => {
-    if (new Date(c.signup_date) > priorCutoff) return false;
+    if (parseLocalDate(c.signup_date) > priorCutoff) return false;
     const sub = subByCompany.get(c.id);
     if (!sub) return false;
     if (sub.status !== "canceled") return true;
-    return sub.end_date !== null && new Date(sub.end_date) > priorCutoff;
+    return sub.end_date !== null && parseLocalDate(sub.end_date) > priorCutoff;
   });
 
   if (activeAtMonthStart.length === 0) return 0;
@@ -776,8 +782,8 @@ export function computeChurnRate(
     return (
       sub.status === "canceled" &&
       sub.end_date !== null &&
-      new Date(sub.end_date) >= monthStart &&
-      new Date(sub.end_date) <= monthEnd
+      parseLocalDate(sub.end_date) >= monthStart &&
+      parseLocalDate(sub.end_date) <= monthEnd
     );
   }).length;
 
@@ -788,7 +794,7 @@ export function computeChurnRate(
 ```ts
 // backend/platform/metrics/nrr.ts
 import type { CompanyRow, SubscriptionEventRow } from "./types";
-import { endOfMonth, startOfMonth } from "./months";
+import { endOfMonth, parseLocalDate, startOfMonth } from "./months";
 
 export function computeNrr(
   companies: CompanyRow[],
@@ -800,11 +806,11 @@ export function computeNrr(
   const priorCutoff = new Date(monthStart.getTime() - 1);
 
   const existingCompanyIds = new Set(
-    companies.filter((c) => new Date(c.signup_date) <= priorCutoff).map((c) => c.id),
+    companies.filter((c) => parseLocalDate(c.signup_date) <= priorCutoff).map((c) => c.id),
   );
 
   const startingMrr = events
-    .filter((e) => existingCompanyIds.has(e.company_id) && new Date(e.event_date) < monthStart)
+    .filter((e) => existingCompanyIds.has(e.company_id) && parseLocalDate(e.event_date) < monthStart)
     .reduce((sum, e) => sum + e.mrr_change, 0);
 
   if (startingMrr === 0) return 0;
@@ -814,8 +820,8 @@ export function computeNrr(
       (e) =>
         existingCompanyIds.has(e.company_id) &&
         e.event_type !== "new_subscription" &&
-        new Date(e.event_date) >= monthStart &&
-        new Date(e.event_date) <= monthEnd,
+        parseLocalDate(e.event_date) >= monthStart &&
+        parseLocalDate(e.event_date) <= monthEnd,
     )
     .reduce((sum, e) => sum + e.mrr_change, 0);
 
@@ -847,7 +853,7 @@ git commit -m "feat(backend): add churn rate and NRR metric functions"
 - Test: `backend/platform/metrics/clv.test.ts`
 
 **Interfaces:**
-- Consumes: `MarketingSpendRow`, `SubscriptionEventRow`, `SubscriptionRow` from Task 3; `startOfMonth` from Task 2.
+- Consumes: `MarketingSpendRow`, `SubscriptionEventRow`, `SubscriptionRow` from Task 3; `startOfMonth`, `parseLocalDate` from Task 2.
 - Produces: `computeCac(spend, events, now): number`; `computeClv(subscriptions, monthlyChurnRate): number` — both consumed by Task 9's endpoint. `computeClv` takes Task 6's `computeChurnRate` result as its second argument (the endpoint computes churn rate once and passes it to both the KPI response and this function).
 
 - [ ] **Step 1: Write the failing tests**
@@ -919,7 +925,7 @@ Expected: FAIL — modules not found.
 ```ts
 // backend/platform/metrics/cac.ts
 import type { MarketingSpendRow, SubscriptionEventRow } from "./types";
-import { startOfMonth } from "./months";
+import { parseLocalDate, startOfMonth } from "./months";
 
 export function computeCac(
   spend: MarketingSpendRow[],
@@ -929,13 +935,13 @@ export function computeCac(
   const monthStart = startOfMonth(now);
 
   const spendRow = spend.find((s) => {
-    const d = new Date(s.month);
+    const d = parseLocalDate(s.month);
     return d.getFullYear() === monthStart.getFullYear() && d.getMonth() === monthStart.getMonth();
   });
   const monthSpend = spendRow?.amount ?? 0;
 
   const newPayingCustomers = events.filter((e) => {
-    const d = new Date(e.event_date);
+    const d = parseLocalDate(e.event_date);
     return (
       e.event_type === "new_subscription" &&
       e.mrr_change > 0 &&
