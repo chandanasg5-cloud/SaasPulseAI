@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ensureSeeded } from "./seed";
+import { ensureSeeded, doSeed } from "./seed";
 import { db } from "./db";
 
 describe("ensureSeeded", () => {
@@ -40,5 +40,25 @@ describe("ensureSeeded", () => {
     await ensureSeeded();
     const after = await db.queryRow`SELECT COUNT(*)::int AS n FROM companies`;
     expect(after?.n).toBe(before?.n);
+  });
+
+  it("doSeed's DB-level guard prevents reseeding when called directly a second time", async () => {
+    // ensureSeeded() memoizes its promise in-process, so calling it twice
+    // never re-runs doSeed()'s body — it can't prove the DB-level
+    // `existing.n > 0` guard actually works. Calling doSeed() directly here
+    // bypasses that in-process cache entirely and re-executes the function's
+    // body, including the guard, against an already-seeded database.
+    await ensureSeeded();
+
+    const companiesBefore = await db.queryRow`SELECT COUNT(*)::int AS n FROM companies`;
+    const eventsBefore = await db.queryRow`SELECT COUNT(*)::int AS n FROM product_events`;
+
+    await doSeed();
+
+    const companiesAfter = await db.queryRow`SELECT COUNT(*)::int AS n FROM companies`;
+    const eventsAfter = await db.queryRow`SELECT COUNT(*)::int AS n FROM product_events`;
+
+    expect(companiesAfter?.n).toBe(companiesBefore?.n);
+    expect(eventsAfter?.n).toBe(eventsBefore?.n);
   });
 });
