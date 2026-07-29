@@ -2,6 +2,21 @@ import { api, Query } from "encore.dev/api";
 import type { Primitive } from "encore.dev/storage/sqldb";
 import { db } from "./db";
 import { ensureSeeded } from "./seed";
+import { ensureMarketingSpendSeeded } from "./marketingSpendSeed";
+import { computeMrrTrend } from "./metrics/mrrTrend";
+import { computeMrrWaterfall, type MrrWaterfall } from "./metrics/mrrWaterfall";
+import { computeCustomerGrowth } from "./metrics/customerGrowth";
+import { computeSubscriptionBreakdown } from "./metrics/subscriptionBreakdown";
+import { computeChurnRate } from "./metrics/churnRate";
+import { computeNrr } from "./metrics/nrr";
+import { computeCac } from "./metrics/cac";
+import { computeClv } from "./metrics/clv";
+import type {
+  CompanyRow as MetricsCompanyRow,
+  MarketingSpendRow,
+  SubscriptionEventRow,
+  SubscriptionRow as MetricsSubscriptionRow,
+} from "./metrics/types";
 
 export const health = api(
   { method: "GET", path: "/health", expose: true },
@@ -101,31 +116,93 @@ export const listCompanies = api(
   },
 );
 
-interface MetricsOverviewResponse {
-  total_companies: number;
-  total_users: number;
-  total_events: number;
-  current_mrr: number;
+interface ExecutiveOverviewResponse {
+  kpis: {
+    mrr: number;
+    arr: number;
+    revenue_growth_pct: number;
+    customer_count: number;
+    cac: number;
+    clv: number;
+    churn_rate_pct: number;
+    nrr_pct: number;
+  };
+  charts: {
+    revenue_trend: { month: string; mrr: number }[];
+    mrr_waterfall: MrrWaterfall;
+    customer_growth: { month: string; active_customers: number }[];
+    subscription_breakdown: { plan_tier: string; count: number; mrr: number }[];
+  };
 }
 
-export const metricsOverview = api(
-  { method: "GET", path: "/metrics/overview", expose: true },
-  async (): Promise<MetricsOverviewResponse> => {
+export const executiveOverview = api(
+  { method: "GET", path: "/metrics/executive-overview", expose: true },
+  async (): Promise<ExecutiveOverviewResponse> => {
     await ensureSeeded();
-    const row = await db.queryRow<{
-      total_companies: number; total_users: number; total_events: number; current_mrr: number;
-    }>`
-      SELECT
-        (SELECT COUNT(*)::int FROM companies) AS total_companies,
-        (SELECT COUNT(*)::int FROM users) AS total_users,
-        (SELECT COUNT(*)::int FROM product_events) AS total_events,
-        (SELECT COALESCE(SUM(mrr_amount), 0)::float FROM subscriptions WHERE status = 'active') AS current_mrr
-    `;
+    await ensureMarketingSpendSeeded();
+    const now = new Date();
+
+    const companies: MetricsCompanyRow[] = [];
+    for await (const r of db.query<MetricsCompanyRow>`
+      SELECT id, signup_date::text AS signup_date FROM companies
+    `) {
+      companies.push(r);
+    }
+
+    const subscriptions: MetricsSubscriptionRow[] = [];
+    for await (const r of db.query<MetricsSubscriptionRow>`
+      SELECT company_id, plan_name, mrr_amount::float AS mrr_amount, status,
+             start_date::text AS start_date, end_date::text AS end_date
+      FROM subscriptions
+    `) {
+      subscriptions.push(r);
+    }
+
+    const events: SubscriptionEventRow[] = [];
+    for await (const r of db.query<SubscriptionEventRow>`
+      SELECT company_id, event_date::text AS event_date, event_type, mrr_change::float AS mrr_change
+      FROM subscription_events
+    `) {
+      events.push(r);
+    }
+
+    const spend: MarketingSpendRow[] = [];
+    for await (const r of db.query<MarketingSpendRow>`
+      SELECT month::text AS month, amount::float AS amount FROM marketing_spend
+    `) {
+      spend.push(r);
+    }
+
+    const revenueTrend = computeMrrTrend(events, now, 12);
+    const mrrWaterfall = computeMrrWaterfall(events, now);
+    const customerGrowth = computeCustomerGrowth(companies, subscriptions, now, 12);
+    const subscriptionBreakdown = computeSubscriptionBreakdown(subscriptions);
+    const churnRate = computeChurnRate(companies, subscriptions, now);
+    const nrr = computeNrr(companies, events, now);
+    const cac = computeCac(spend, events, now);
+    const clv = computeClv(subscriptions, churnRate);
+
+    const currentMrr = revenueTrend[revenueTrend.length - 1]?.mrr ?? 0;
+    const previousMrr = revenueTrend[revenueTrend.length - 2]?.mrr ?? 0;
+    const revenueGrowthPct = previousMrr === 0 ? 0 : ((currentMrr - previousMrr) / previousMrr) * 100;
+
     return {
-      total_companies: row?.total_companies ?? 0,
-      total_users: row?.total_users ?? 0,
-      total_events: row?.total_events ?? 0,
-      current_mrr: row?.current_mrr ?? 0,
+      kpis: {
+        mrr: currentMrr,
+        arr: currentMrr * 12,
+        revenue_growth_pct: revenueGrowthPct,
+        customer_count: customerGrowth[customerGrowth.length - 1]?.active_customers ?? 0,
+        cac,
+        clv,
+        churn_rate_pct: churnRate * 100,
+        nrr_pct: nrr * 100,
+      },
+      charts: {
+        revenue_trend: revenueTrend,
+        mrr_waterfall: mrrWaterfall,
+        customer_growth: customerGrowth,
+        subscription_breakdown: subscriptionBreakdown,
+      },
     };
   },
 );

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { health, companiesCount, listCompanies, metricsOverview } from "./api";
+import { health, companiesCount, listCompanies, executiveOverview } from "./api";
 
 describe("health", () => {
   it("returns ok", async () => {
@@ -30,12 +30,29 @@ describe("listCompanies", () => {
   });
 });
 
-describe("metricsOverview", () => {
-  it("returns non-zero totals", async () => {
-    const res = await metricsOverview();
-    expect(res.total_companies).toBe(1000);
-    expect(res.total_users).toBeGreaterThan(0);
-    expect(res.total_events).toBe(100000);
-    expect(res.current_mrr).toBeGreaterThan(0);
+describe("executiveOverview", () => {
+  it("returns all 8 KPIs and all 4 chart datasets from real seeded data", async () => {
+    const res = await executiveOverview();
+
+    expect(res.kpis.mrr).toBeGreaterThan(0);
+    expect(res.kpis.arr).toBeCloseTo(res.kpis.mrr * 12, 2);
+    expect(res.kpis.customer_count).toBeGreaterThan(0);
+    expect(typeof res.kpis.revenue_growth_pct).toBe("number");
+    expect(typeof res.kpis.cac).toBe("number");
+    expect(typeof res.kpis.clv).toBe("number");
+    expect(typeof res.kpis.churn_rate_pct).toBe("number");
+    expect(typeof res.kpis.nrr_pct).toBe("number");
+
+    expect(res.charts.revenue_trend).toHaveLength(12);
+    expect(res.charts.customer_growth).toHaveLength(12);
+    expect(res.charts.subscription_breakdown.length).toBeGreaterThan(0);
+    expect(res.charts.mrr_waterfall.ending_mrr).toBeCloseTo(
+      res.charts.mrr_waterfall.starting_mrr +
+        res.charts.mrr_waterfall.new_mrr +
+        res.charts.mrr_waterfall.expansion_mrr +
+        res.charts.mrr_waterfall.contraction_mrr +
+        res.charts.mrr_waterfall.churned_mrr,
+      2,
+    );
   });
 });
