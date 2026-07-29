@@ -17,4 +17,14 @@ describe("schema", () => {
       expect(names.has(table)).toBe(true);
     }
   });
+
+  it("has the marketing_spend table", async () => {
+    const rows = db.query<{ table_name: string }>`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'marketing_spend'
+    `;
+    const names: string[] = [];
+    for await (const r of rows) names.push(r.table_name);
+    expect(names).toContain("marketing_spend");
+  });
 });
