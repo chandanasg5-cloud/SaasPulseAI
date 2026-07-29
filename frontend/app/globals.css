@@ -81,6 +81,42 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --series-1: #2a78d6;
+  --series-2: #008300;
+  --series-3: #e87ba4;
+  --series-4: #eda100;
+  --status-good: #0ca30c;
+  --status-critical: #d03b3b;
+  --chart-surface: #fcfcfb;
+  --chart-grid: #e1e0d9;
+  --chart-axis-muted: #898781;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --series-1: #3987e5;
+    --series-2: #008300;
+    --series-3: #d55181;
+    --series-4: #c98500;
+    --status-good: #0ca30c;
+    --status-critical: #e66767;
+    --chart-surface: #1a1a19;
+    --chart-grid: #2c2c2a;
+    --chart-axis-muted: #898781;
+  }
+}
+
+:root[data-theme="dark"] {
+  --series-1: #3987e5;
+  --series-2: #008300;
+  --series-3: #d55181;
+  --series-4: #c98500;
+  --status-good: #0ca30c;
+  --status-critical: #e66767;
+  --chart-surface: #1a1a19;
+  --chart-grid: #2c2c2a;
+  --chart-axis-muted: #898781;
 }
 
 .dark {

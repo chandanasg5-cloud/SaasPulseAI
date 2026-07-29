@@ -1,10 +1,10 @@
-import type { CompaniesResponse, MetricsOverview } from "./types";
+import type { CompaniesResponse, ExecutiveOverview } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-export async function getMetricsOverview(): Promise<MetricsOverview> {
-  const res = await fetch(`${API}/metrics/overview`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`GET /metrics/overview failed: ${res.status}`);
+export async function getExecutiveOverview(): Promise<ExecutiveOverview> {
+  const res = await fetch(`${API}/metrics/executive-overview`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /metrics/executive-overview failed: ${res.status}`);
   return res.json();
 }
 
