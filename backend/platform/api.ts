@@ -1,4 +1,5 @@
 import { api, Query } from "encore.dev/api";
+import type { Primitive } from "encore.dev/storage/sqldb";
 import { db } from "./db";
 import { ensureSeeded } from "./seed";
 
@@ -67,7 +68,7 @@ export const listCompanies = api(
     const offset = (page - 1) * pageSize;
 
     const conditions: string[] = [];
-    const values: unknown[] = [];
+    const values: Primitive[] = [];
     if (params.planTier) {
       conditions.push(`c.plan_tier = $${values.length + 1}`);
       values.push(params.planTier);

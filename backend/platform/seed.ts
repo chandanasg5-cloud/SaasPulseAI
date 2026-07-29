@@ -7,7 +7,7 @@ import { generateSupportTickets } from "./generate/tickets";
 import type {
   CompanyRow, UserRow, SubscriptionRow, SubscriptionEventRow, ProductEventRow, SupportTicketRow,
 } from "./generate/types";
-import type { SQLDatabase, Transaction } from "encore.dev/storage/sqldb";
+import type { Primitive, SQLDatabase, Transaction } from "encore.dev/storage/sqldb";
 
 const SEED = 42;
 const COMPANY_COUNT = 1000;
@@ -67,13 +67,13 @@ async function batchInsert(
   executor: Executor,
   table: string,
   columns: string[],
-  rows: unknown[][],
+  rows: Primitive[][],
   batchSize = 500,
 ): Promise<void> {
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
     const valueClauses: string[] = [];
-    const params: unknown[] = [];
+    const params: Primitive[] = [];
     batch.forEach((row, rowIdx) => {
       const placeholders = row.map((_, colIdx) => `$${rowIdx * row.length + colIdx + 1}`);
       valueClauses.push(`(${placeholders.join(", ")})`);
