@@ -62,8 +62,8 @@ export const listCompanies = api(
   { method: "GET", path: "/companies", expose: true },
   async (params: ListCompaniesParams): Promise<{ companies: CompanySummary[]; total: number }> => {
     await ensureSeeded();
-    const page = params.page ?? 1;
-    const pageSize = Math.min(params.pageSize ?? 25, 100);
+    const page = Math.max(1, params.page ?? 1);
+    const pageSize = Math.max(1, Math.min(params.pageSize ?? 25, 100));
     const offset = (page - 1) * pageSize;
 
     const conditions: string[] = [];
