@@ -17,3 +17,15 @@ export function trailingMonths(now: Date, count: number): Date[] {
   }
   return months;
 }
+
+// DB date/timestamp columns come back as bare "YYYY-MM-DD" strings. `new Date(str)`
+// parses those per ISO 8601 as UTC midnight, while every boundary in this file
+// (startOfMonth, endOfMonth, trailingMonths) is built in local time via the
+// Date(year, month, day) constructor form. Comparing a UTC-parsed instant against
+// a local-time boundary silently misclassifies dates near month edges in any
+// timezone west of UTC. Parse as a local calendar date instead so date-string
+// fields compare correctly against this file's boundaries.
+export function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
