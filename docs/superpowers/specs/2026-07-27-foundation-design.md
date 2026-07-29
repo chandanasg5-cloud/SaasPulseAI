@@ -187,4 +187,7 @@ Route: `/dashboard`
   real modeling comes in Phase 5/6
 - Frontend verified via `tsc` and a deployed preview rather than trusting local
   `next dev`/`next build`, which have hung on this machine for other Next.js projects
+  — **amended 2026-07-28:** Phase 1 shipped with local-only verification (`tsc --noEmit`
+  plus a short-lived local `next dev` against local Encore/Postgres). The deployed-preview
+  check is deferred by user decision to a later phase, once more of the product exists.
 - Everything committed to git, with a README stub on how to run each piece locally
