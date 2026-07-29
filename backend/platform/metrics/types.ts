@@ -25,3 +25,16 @@ export interface MarketingSpendRow {
   month: string;
   amount: number;
 }
+
+export interface UserRow {
+  id: string;
+  company_id: string;
+  first_login_at: Date | null;
+  created_at: Date;
+}
+
+export interface ProductEventRow {
+  user_id: string;
+  feature_name: string | null;
+  timestamp: Date;
+}
