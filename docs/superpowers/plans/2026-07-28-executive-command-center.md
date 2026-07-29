@@ -1457,7 +1457,7 @@ function formatGbpCompact(value: number): string {
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "GBP",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 1,
     notation: "compact",
   }).format(value);
 }
