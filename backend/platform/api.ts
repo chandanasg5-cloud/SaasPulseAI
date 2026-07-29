@@ -85,7 +85,7 @@ export const listCompanies = api(
 
     const listSql = `
       SELECT c.id, c.name, c.industry, c.plan_tier, c.customer_stage,
-        COALESCE(s.mrr_amount, 0) AS mrr
+        COALESCE(s.mrr_amount, 0)::float AS mrr
       FROM companies c
       LEFT JOIN subscriptions s ON s.company_id = c.id
       ${whereClause}
