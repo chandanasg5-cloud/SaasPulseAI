@@ -43,18 +43,27 @@ describe("computeChurnRate", () => {
     expect(computeChurnRate(companies, subscriptions, now)).toBeCloseTo(0.5, 5);
   });
 
-  it("does not count a company signed up during the target month in either numerator or denominator", () => {
+  it("excludes a mid-month signup from the month-start cohort denominator", () => {
     const now = new Date(2026, 6, 15); // July
     const companies: CompanyRow[] = [
-      { id: "CMP-0001", signup_date: "2026-01-01" }, // pre-existing, stays active
-      { id: "CMP-0002", signup_date: "2026-07-05" }, // new this month
+      { id: "CMP-0001", signup_date: "2026-01-01" }, // pre-existing, churns this month
+      { id: "CMP-0002", signup_date: "2026-07-05" }, // signs up mid-month, stays active
     ];
     const subscriptions: SubscriptionRow[] = [
-      { company_id: "CMP-0001", plan_name: "starter", mrr_amount: 99, status: "active", start_date: "2026-01-01", end_date: null },
+      { company_id: "CMP-0001", plan_name: "starter", mrr_amount: 99, status: "canceled", start_date: "2026-01-01", end_date: "2026-07-20" },
       { company_id: "CMP-0002", plan_name: "starter", mrr_amount: 99, status: "active", start_date: "2026-07-05", end_date: null },
     ];
 
-    // Only CMP-0001 was active at month start (denominator = 1), and it didn't churn.
-    expect(computeChurnRate(companies, subscriptions, now)).toBe(0);
+    // Only CMP-0001 was active at month start (denominator = 1); CMP-0002 signed up
+    // mid-month and must be excluded from the cohort entirely, regardless of its
+    // status. Of the 1 company actually active at month start, it churned this
+    // month: 1/1 = 1.
+    //
+    // If CMP-0002 were WRONGLY included in the denominator (a bug in the
+    // signup-date exclusion), the denominator would be 2 while the numerator
+    // stays 1 (CMP-0002 is active, not churned), giving 1/2 = 0.5 instead of the
+    // correct 1 — so this assertion can distinguish correct exclusion from a bug
+    // that fails to exclude it.
+    expect(computeChurnRate(companies, subscriptions, now)).toBe(1);
   });
 });

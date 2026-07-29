@@ -43,17 +43,28 @@ describe("computeNrr", () => {
     expect(computeNrr(companies, events, now)).toBeCloseTo(900 / 1500, 5);
   });
 
-  it("ignores events for a company that signed up during the target month even if it existed earlier is false", () => {
-    // Sanity: a company whose signup_date falls exactly on month start is NOT part of the
-    // existing cohort (cohort = strictly before month start), so its events must be excluded
-    // from both starting MRR and net change.
+  it("excludes a non-cohort company's event from netChangeThisMonth even with nonzero starting MRR", () => {
     const now = new Date(2026, 6, 15); // July
-    const companies: CompanyRow[] = [{ id: "CMP-0001", signup_date: "2026-07-01" }];
+    const companies: CompanyRow[] = [
+      { id: "CMP-0001", signup_date: "2026-01-01" }, // existing cohort, well before July
+      { id: "CMP-0002", signup_date: "2026-07-10" }, // signs up this month, NOT in cohort
+    ];
     const events: SubscriptionEventRow[] = [
-      { company_id: "CMP-0001", event_date: "2026-07-01", event_type: "new_subscription", mrr_change: 1000 },
-      { company_id: "CMP-0001", event_date: "2026-07-20", event_type: "upgrade", mrr_change: 200 },
+      { company_id: "CMP-0001", event_date: "2026-01-01", event_type: "new_subscription", mrr_change: 1000 },
+      { company_id: "CMP-0002", event_date: "2026-07-15", event_type: "upgrade", mrr_change: 300 },
     ];
 
-    expect(computeNrr(companies, events, now)).toBe(0);
+    // startingMrr = 1000 (from CMP-0001's pre-July new_subscription event) — nonzero,
+    // so the startingMrr === 0 early return is never hit, meaning netChangeThisMonth's
+    // cohort filter is genuinely exercised by this test.
+    //
+    // CMP-0002's +300 upgrade event falls within July, but CMP-0002 is NOT part of the
+    // existing cohort (it signed up this month), so it must be excluded from
+    // netChangeThisMonth entirely: result should be exactly 1000 / 1000 = 1.
+    //
+    // If the cohort filter on netChangeThisMonth were ever broken/removed, CMP-0002's
+    // +300 would leak in, giving (1000 + 300) / 1000 = 1.3 instead — so this assertion
+    // can distinguish a correctly-filtered netChangeThisMonth from a broken one.
+    expect(computeNrr(companies, events, now)).toBe(1);
   });
 });
