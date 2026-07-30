@@ -38,3 +38,16 @@ export interface ProductEventRow {
   feature_name: string | null;
   timestamp: Date;
 }
+
+export interface CompanyEventRow {
+  company_id: string;
+  user_id: string;
+  feature_name: string | null;
+  timestamp: Date;
+}
+
+export interface SupportTicketRow {
+  company_id: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  created_at: Date;
+}
