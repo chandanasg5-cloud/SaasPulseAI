@@ -57,3 +57,44 @@ export interface CompaniesResponse {
   companies: CompanySummary[];
   total: number;
 }
+
+export interface ProductKpis {
+  dau: number;
+  wau: number;
+  mau: number;
+  stickiness_pct: number;
+  feature_adoption_pct: number;
+}
+
+export interface FunnelStage {
+  stage: string;
+  count: number;
+}
+
+export interface FeatureUsageRow {
+  feature_name: string;
+  event_count: number;
+}
+
+export interface EngagementTrendPoint {
+  date: string;
+  dau: number;
+  wau: number;
+  mau: number;
+}
+
+export interface CohortRetentionCell {
+  cohort_month: string;
+  months_since_signup: number;
+  retention_pct: number;
+}
+
+export interface ProductOverview {
+  kpis: ProductKpis;
+  funnel: FunnelStage[];
+  charts: {
+    feature_usage_ranking: FeatureUsageRow[];
+    engagement_trend: EngagementTrendPoint[];
+    cohort_retention: CohortRetentionCell[];
+  };
+}
