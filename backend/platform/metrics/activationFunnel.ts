@@ -18,17 +18,17 @@ export function computeActivationFunnel(
     featuresByUser.set(e.user_id, set);
   }
 
-  const signup = users.length;
-  const firstLogin = users.filter((u) => u.first_login_at !== null).length;
-  const firstFeatureUsage = users.filter((u) => (featuresByUser.get(u.id)?.size ?? 0) >= 1).length;
-  const productAdoption = users.filter((u) => (featuresByUser.get(u.id)?.size ?? 0) >= 3).length;
-  const paidConversion = users.filter((u) => paidCompanyIds.has(u.company_id)).length;
+  const signupUsers = users;
+  const firstLoginUsers = signupUsers.filter((u) => u.first_login_at !== null);
+  const firstFeatureUsageUsers = firstLoginUsers.filter((u) => (featuresByUser.get(u.id)?.size ?? 0) >= 1);
+  const productAdoptionUsers = firstFeatureUsageUsers.filter((u) => (featuresByUser.get(u.id)?.size ?? 0) >= 3);
+  const paidConversionUsers = productAdoptionUsers.filter((u) => paidCompanyIds.has(u.company_id));
 
   return [
-    { stage: "signup", count: signup },
-    { stage: "first_login", count: firstLogin },
-    { stage: "first_feature_usage", count: firstFeatureUsage },
-    { stage: "product_adoption", count: productAdoption },
-    { stage: "paid_conversion", count: paidConversion },
+    { stage: "signup", count: signupUsers.length },
+    { stage: "first_login", count: firstLoginUsers.length },
+    { stage: "first_feature_usage", count: firstFeatureUsageUsers.length },
+    { stage: "product_adoption", count: productAdoptionUsers.length },
+    { stage: "paid_conversion", count: paidConversionUsers.length },
   ];
 }
