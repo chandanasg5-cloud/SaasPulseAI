@@ -91,6 +91,14 @@
   --chart-surface: #fcfcfb;
   --chart-grid: #e1e0d9;
   --chart-axis-muted: #898781;
+
+  --seq-1: #cde2fb; /* step 100 — recedes toward light surface at low value */
+  --seq-2: #9ec5f4; /* step 200 */
+  --seq-3: #6da7ec; /* step 300 */
+  --seq-4: #3987e5; /* step 400 */
+  --seq-5: #256abf; /* step 500 */
+  --seq-6: #184f95; /* step 600 */
+  --seq-7: #0d366b; /* step 700 — darkest, highest value */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -104,6 +112,14 @@
     --chart-surface: #1a1a19;
     --chart-grid: #2c2c2a;
     --chart-axis-muted: #898781;
+
+    --seq-1: #0d366b; /* step 700 — recedes toward dark surface at low value */
+    --seq-2: #184f95; /* step 600 */
+    --seq-3: #256abf; /* step 500 */
+    --seq-4: #3987e5; /* step 400 */
+    --seq-5: #6da7ec; /* step 300 */
+    --seq-6: #9ec5f4; /* step 200 */
+    --seq-7: #cde2fb; /* step 100 — lightest, highest value in dark mode */
   }
 }
 
@@ -117,6 +133,14 @@
   --chart-surface: #1a1a19;
   --chart-grid: #2c2c2a;
   --chart-axis-muted: #898781;
+
+  --seq-1: #0d366b;
+  --seq-2: #184f95;
+  --seq-3: #256abf;
+  --seq-4: #3987e5;
+  --seq-5: #6da7ec;
+  --seq-6: #9ec5f4;
+  --seq-7: #cde2fb;
 }
 
 .dark {
