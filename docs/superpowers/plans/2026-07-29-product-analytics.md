@@ -1324,14 +1324,9 @@ Expected: no errors — this should be fully clean, not just "no new errors," si
 
 - [ ] **Step 3: Validate the sequential palette**
 
-Locate the active dataviz skill's `scripts/validate_palette.js` and run it against the `--seq-*` steps for both modes (the categorical `--series-*` set was already validated in Phase 2 and is unchanged):
+The `--seq-*` steps (final, corrected values from Task 11) are a **sequential** ramp (continuous magnitude — this is `palette.md`'s own named "heatmaps" example), not an **ordinal** one (discrete ordered marks like funnel stages/tiers). Per `color-formula.md`: "running the categorical [or ordinal] validator on a sequential ramp will FAIL by design... which is expected, not a real failure; don't 'fix' a good ramp to satisfy it." Do NOT run this with `--ordinal` — that check enforces a 2:1 light-end contrast floor that sequential ramps are explicitly exempt from (their low end is *supposed* to recede toward the surface). The checks that actually apply to a sequential ramp are lightness monotonicity, adjacent-step visibility (ΔL), and single-hue — verify those pass; a "Light-end contrast" FAIL under `--ordinal` on this ramp is not a real failure and must not be "fixed" by altering the palette.
 
-```bash
-node <dataviz-skill-dir>/scripts/validate_palette.js "#86b6ef,#6da7ec,#3987e5,#2a78d6,#1c5cab,#104281,#0d366b" --ordinal --mode light
-node <dataviz-skill-dir>/scripts/validate_palette.js "#184f95,#1c5cab,#256abf,#3987e5,#6da7ec,#9ec5f4,#cde2fb" --ordinal --mode dark
-```
-
-Expected: PASS on the ordinal lightness-monotonicity and contrast-floor checks for both runs. If either FAILs, stop and report the validator's output rather than silently adjusting values — these are meant to be the skill's own pre-validated sequential steps.
+Locate the active dataviz skill's `scripts/validate_palette.js` and use the Task 11 CSS values as-committed (the categorical `--series-*` set was already validated in Phase 2 and is unchanged).
 
 - [ ] **Step 4: Manual verification against the real backend**
 
