@@ -11,11 +11,19 @@ import { computeChurnRate } from "./metrics/churnRate";
 import { computeNrr } from "./metrics/nrr";
 import { computeCac } from "./metrics/cac";
 import { computeClv } from "./metrics/clv";
+import { computeStickiness } from "./metrics/stickiness";
+import { computeEngagementTrend } from "./metrics/engagementTrend";
+import { computeActivationFunnel } from "./metrics/activationFunnel";
+import { computeFeatureAdoptionRate } from "./metrics/featureAdoptionRate";
+import { computeFeatureUsageRanking } from "./metrics/featureUsageRanking";
+import { computeCohortRetention } from "./metrics/cohortRetention";
 import type {
   CompanyRow as MetricsCompanyRow,
   MarketingSpendRow,
   SubscriptionEventRow,
   SubscriptionRow as MetricsSubscriptionRow,
+  UserRow as MetricsUserRow,
+  ProductEventRow as MetricsProductEventRow,
 } from "./metrics/types";
 
 export const health = api(
@@ -202,6 +210,73 @@ export const executiveOverview = api(
         mrr_waterfall: mrrWaterfall,
         customer_growth: customerGrowth,
         subscription_breakdown: subscriptionBreakdown,
+      },
+    };
+  },
+);
+
+interface ProductOverviewResponse {
+  kpis: {
+    dau: number;
+    wau: number;
+    mau: number;
+    stickiness_pct: number;
+    feature_adoption_pct: number;
+  };
+  funnel: { stage: string; count: number }[];
+  charts: {
+    feature_usage_ranking: { feature_name: string; event_count: number }[];
+    engagement_trend: { date: string; dau: number; wau: number; mau: number }[];
+    cohort_retention: { cohort_month: string; months_since_signup: number; retention_pct: number }[];
+  };
+}
+
+export const productOverview = api(
+  { method: "GET", path: "/metrics/product-overview", expose: true },
+  async (): Promise<ProductOverviewResponse> => {
+    await ensureSeeded();
+    const now = new Date();
+
+    const users: MetricsUserRow[] = [];
+    for await (const r of db.query<MetricsUserRow>`
+      SELECT id, company_id, first_login_at, created_at FROM users
+    `) {
+      users.push(r);
+    }
+
+    const events: MetricsProductEventRow[] = [];
+    for await (const r of db.query<MetricsProductEventRow>`
+      SELECT user_id, feature_name, "timestamp" FROM product_events
+    `) {
+      events.push(r);
+    }
+
+    const paidCompanyIds = new Set<string>();
+    for await (const r of db.query<{ company_id: string }>`
+      SELECT company_id FROM subscriptions WHERE plan_name != 'free'
+    `) {
+      paidCompanyIds.add(r.company_id);
+    }
+
+    const engagementTrend = computeEngagementTrend(events, now, 30);
+    const lastPoint = engagementTrend[engagementTrend.length - 1];
+    const dau = lastPoint?.dau ?? 0;
+    const wau = lastPoint?.wau ?? 0;
+    const mau = lastPoint?.mau ?? 0;
+
+    return {
+      kpis: {
+        dau,
+        wau,
+        mau,
+        stickiness_pct: computeStickiness(dau, mau),
+        feature_adoption_pct: computeFeatureAdoptionRate(events, now),
+      },
+      funnel: computeActivationFunnel(users, events, paidCompanyIds),
+      charts: {
+        feature_usage_ranking: computeFeatureUsageRanking(events),
+        engagement_trend: engagementTrend,
+        cohort_retention: computeCohortRetention(users, events, now, 12),
       },
     };
   },

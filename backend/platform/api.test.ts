@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { health, companiesCount, listCompanies, executiveOverview } from "./api";
+import { health, companiesCount, listCompanies, executiveOverview, productOverview } from "./api";
 
 describe("health", () => {
   it("returns ok", async () => {
@@ -54,5 +54,30 @@ describe("executiveOverview", () => {
         res.charts.mrr_waterfall.churned_mrr,
       2,
     );
+  });
+});
+
+describe("productOverview", () => {
+  it("returns all 5 KPIs, the 5-stage funnel, and all 3 chart datasets from real seeded data", async () => {
+    const res = await productOverview();
+
+    expect(res.kpis.dau).toBeGreaterThanOrEqual(0);
+    expect(res.kpis.wau).toBeGreaterThanOrEqual(res.kpis.dau);
+    expect(res.kpis.mau).toBeGreaterThanOrEqual(res.kpis.wau);
+    expect(typeof res.kpis.stickiness_pct).toBe("number");
+    expect(typeof res.kpis.feature_adoption_pct).toBe("number");
+
+    expect(res.funnel).toHaveLength(5);
+    expect(res.funnel.map((f) => f.stage)).toEqual([
+      "signup", "first_login", "first_feature_usage", "product_adoption", "paid_conversion",
+    ]);
+    // Each stage's count should never exceed the previous stage's (funnel narrows or holds, never widens)
+    for (let i = 1; i < res.funnel.length; i++) {
+      expect(res.funnel[i].count).toBeLessThanOrEqual(res.funnel[i - 1].count);
+    }
+
+    expect(res.charts.feature_usage_ranking.length).toBeGreaterThan(0);
+    expect(res.charts.engagement_trend).toHaveLength(30);
+    expect(res.charts.cohort_retention.length).toBeGreaterThan(0);
   });
 });
