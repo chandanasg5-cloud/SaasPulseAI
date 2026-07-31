@@ -17,6 +17,12 @@ import { computeActivationFunnel } from "./metrics/activationFunnel";
 import { computeFeatureAdoptionRate } from "./metrics/featureAdoptionRate";
 import { computeFeatureUsageRanking } from "./metrics/featureUsageRanking";
 import { computeCohortRetention } from "./metrics/cohortRetention";
+import { computeUsageScore } from "./metrics/usageScore";
+import { computeFeatureAdoptionScore } from "./metrics/featureAdoptionScore";
+import { computeSupportScore } from "./metrics/supportScore";
+import { computeRevenueScore } from "./metrics/revenueScore";
+import { computeHealthScore } from "./metrics/healthScore";
+import { computeRecommendedAction } from "./metrics/recommendedAction";
 import type {
   CompanyRow as MetricsCompanyRow,
   MarketingSpendRow,
@@ -24,6 +30,10 @@ import type {
   SubscriptionRow as MetricsSubscriptionRow,
   UserRow as MetricsUserRow,
   ProductEventRow as MetricsProductEventRow,
+  CompanyEventRow,
+  SupportTicketRow as MetricsSupportTicketRow,
+  UserRow as HealthUserRow,
+  ProductEventRow as HealthProductEventRow,
 } from "./metrics/types";
 
 export const health = api(
@@ -279,5 +289,131 @@ export const productOverview = api(
         cohort_retention: computeCohortRetention(users, events, now, 12),
       },
     };
+  },
+);
+
+interface ActiveCompanyRow {
+  id: string;
+  name: string;
+  plan_tier: string;
+  plan_name: string;
+  status: string;
+}
+
+interface CustomerHealthCard {
+  company_id: string;
+  company_name: string;
+  plan_tier: string;
+  usage_score: number;
+  adoption_score: number;
+  support_score: number;
+  revenue_score: number;
+  overall_score: number;
+  risk_level: string;
+  recommended_action: string;
+}
+
+interface CustomerHealthScoresParams {
+  page?: Query<number>;
+  pageSize?: Query<number>;
+}
+
+export const customerHealthScores = api(
+  { method: "GET", path: "/customers/health-scores", expose: true },
+  async (params: CustomerHealthScoresParams): Promise<{ customers: CustomerHealthCard[]; total: number }> => {
+    await ensureSeeded();
+    const now = new Date();
+    const page = Math.max(1, params.page ?? 1);
+    const pageSize = Math.max(1, Math.min(params.pageSize ?? 25, 100));
+
+    const companies: ActiveCompanyRow[] = [];
+    for await (const r of db.query<ActiveCompanyRow>`
+      SELECT c.id, c.name, c.plan_tier, s.plan_name, s.status
+      FROM companies c
+      JOIN subscriptions s ON s.company_id = c.id
+      WHERE NOT (s.status = 'canceled' AND s.end_date <= CURRENT_DATE)
+      ORDER BY c.id
+    `) {
+      companies.push(r);
+    }
+
+    const users: HealthUserRow[] = [];
+    for await (const r of db.query<HealthUserRow>`
+      SELECT id, company_id, first_login_at, created_at FROM users
+    `) {
+      users.push(r);
+    }
+
+    const events: CompanyEventRow[] = [];
+    for await (const r of db.query<CompanyEventRow>`
+      SELECT company_id, user_id, feature_name, "timestamp" FROM product_events
+    `) {
+      events.push(r);
+    }
+
+    const tickets: MetricsSupportTicketRow[] = [];
+    for await (const r of db.query<MetricsSupportTicketRow>`
+      SELECT company_id, priority, created_at FROM support_tickets
+    `) {
+      tickets.push(r);
+    }
+
+    const usersByCompany = new Map<string, HealthUserRow[]>();
+    for (const u of users) {
+      const arr = usersByCompany.get(u.company_id) ?? [];
+      arr.push(u);
+      usersByCompany.set(u.company_id, arr);
+    }
+
+    const eventsByCompany = new Map<string, CompanyEventRow[]>();
+    for (const e of events) {
+      const arr = eventsByCompany.get(e.company_id) ?? [];
+      arr.push(e);
+      eventsByCompany.set(e.company_id, arr);
+    }
+
+    const ticketsByCompany = new Map<string, MetricsSupportTicketRow[]>();
+    for (const t of tickets) {
+      const arr = ticketsByCompany.get(t.company_id) ?? [];
+      arr.push(t);
+      ticketsByCompany.set(t.company_id, arr);
+    }
+
+    const allCards: CustomerHealthCard[] = companies.map((c) => {
+      const companyUsers = usersByCompany.get(c.id) ?? [];
+      const companyEvents = eventsByCompany.get(c.id) ?? [];
+      const companyTickets = ticketsByCompany.get(c.id) ?? [];
+      const productEventRows: HealthProductEventRow[] = companyEvents.map((e) => ({
+        user_id: e.user_id,
+        feature_name: e.feature_name,
+        timestamp: e.timestamp,
+      }));
+
+      const usageScore = computeUsageScore(companyUsers, productEventRows, now);
+      const adoptionScore = computeFeatureAdoptionScore(productEventRows, now);
+      const supportScore = computeSupportScore(companyTickets, now);
+      const revenueScore = computeRevenueScore({ plan_name: c.plan_name, status: c.status });
+      const health = computeHealthScore(usageScore, adoptionScore, supportScore, revenueScore);
+      const recommendedAction = computeRecommendedAction(health);
+
+      return {
+        company_id: c.id,
+        company_name: c.name,
+        plan_tier: c.plan_tier,
+        usage_score: health.usage_score,
+        adoption_score: health.adoption_score,
+        support_score: health.support_score,
+        revenue_score: health.revenue_score,
+        overall_score: health.overall_score,
+        risk_level: health.risk_level,
+        recommended_action: recommendedAction,
+      };
+    });
+
+    const total = allCards.length;
+    const start = (page - 1) * pageSize;
+    const customers = allCards.slice(start, start + pageSize);
+
+    return { customers, total };
   },
 );

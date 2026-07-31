@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { health, companiesCount, listCompanies, executiveOverview, productOverview } from "./api";
+import { customerHealthScores } from "./api";
+import { db } from "./db";
 
 describe("health", () => {
   it("returns ok", async () => {
@@ -79,5 +81,37 @@ describe("productOverview", () => {
     expect(res.charts.feature_usage_ranking.length).toBeGreaterThan(0);
     expect(res.charts.engagement_trend).toHaveLength(30);
     expect(res.charts.cohort_retention.length).toBeGreaterThan(0);
+  });
+});
+
+describe("customerHealthScores", () => {
+  it("returns paginated, real-computed health scores for active companies only", async () => {
+    const res = await customerHealthScores({ page: 1, pageSize: 10 });
+
+    expect(res.customers).toHaveLength(10);
+    expect(res.total).toBeGreaterThan(0);
+
+    for (const c of res.customers) {
+      expect(c.overall_score).toBeCloseTo(
+        c.usage_score + c.adoption_score + c.support_score + c.revenue_score,
+        5,
+      );
+      expect(["low", "medium", "high"]).toContain(c.risk_level);
+      expect(typeof c.recommended_action).toBe("string");
+      expect(c.recommended_action.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("excludes churned companies", async () => {
+    const res = await customerHealthScores({ page: 1, pageSize: 100 });
+    const churnedRow = await db.queryRow`
+      SELECT c.id FROM companies c
+      JOIN subscriptions s ON s.company_id = c.id
+      WHERE s.status = 'canceled' AND s.end_date <= CURRENT_DATE
+      LIMIT 1
+    `;
+    if (churnedRow) {
+      expect(res.customers.some((c) => c.company_id === churnedRow.id)).toBe(false);
+    }
   });
 });
