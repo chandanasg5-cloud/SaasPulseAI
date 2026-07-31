@@ -88,6 +88,7 @@
   --series-4: #eda100;
   --status-good: #0ca30c;
   --status-critical: #d03b3b;
+  --status-warning: #fab219;
   --chart-surface: #fcfcfb;
   --chart-grid: #e1e0d9;
   --chart-axis-muted: #898781;
@@ -109,6 +110,7 @@
     --series-4: #c98500;
     --status-good: #0ca30c;
     --status-critical: #e66767;
+    --status-warning: #fab219;
     --chart-surface: #1a1a19;
     --chart-grid: #2c2c2a;
     --chart-axis-muted: #898781;
@@ -130,6 +132,7 @@
   --series-4: #c98500;
   --status-good: #0ca30c;
   --status-critical: #e66767;
+  --status-warning: #fab219;
   --chart-surface: #1a1a19;
   --chart-grid: #2c2c2a;
   --chart-axis-muted: #898781;
