@@ -98,3 +98,21 @@ export interface ProductOverview {
     cohort_retention: CohortRetentionCell[];
   };
 }
+
+export interface CustomerHealthCard {
+  company_id: string;
+  company_name: string;
+  plan_tier: string;
+  usage_score: number;
+  adoption_score: number;
+  support_score: number;
+  revenue_score: number;
+  overall_score: number;
+  risk_level: string;
+  recommended_action: string;
+}
+
+export interface CustomerHealthScoresResponse {
+  customers: CustomerHealthCard[];
+  total: number;
+}

@@ -1,4 +1,4 @@
-import type { CompaniesResponse, ExecutiveOverview, ProductOverview } from "./types";
+import type { CompaniesResponse, ExecutiveOverview, ProductOverview, CustomerHealthScoresResponse } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -17,5 +17,11 @@ export async function getCompanies(pageSize = 25): Promise<CompaniesResponse> {
 export async function getProductOverview(): Promise<ProductOverview> {
   const res = await fetch(`${API}/metrics/product-overview`, { cache: "no-store" });
   if (!res.ok) throw new Error(`GET /metrics/product-overview failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getCustomerHealthScores(page = 1, pageSize = 25): Promise<CustomerHealthScoresResponse> {
+  const res = await fetch(`${API}/customers/health-scores?page=${page}&pageSize=${pageSize}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /customers/health-scores failed: ${res.status}`);
   return res.json();
 }
