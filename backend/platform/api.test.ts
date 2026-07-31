@@ -115,6 +115,30 @@ describe("customerHealthScores", () => {
     }
   });
 
+  it("returns the company's current plan_name, not the stale signup-time plan_tier, when they diverge", async () => {
+    // companies.plan_tier is assigned at signup and never updated; subscriptions.plan_name
+    // reflects the current plan after any upgrade/downgrade. revenue_score is computed from
+    // the current plan, so the displayed plan_tier must match it or the two fields contradict
+    // each other in the response.
+    await db.exec`
+      INSERT INTO companies (id, name, industry, company_size, plan_tier, customer_stage, signup_date)
+      VALUES ('CMP-0000A', 'Downgraded Co', 'other', 10, 'enterprise', 'active', CURRENT_DATE - INTERVAL '400 days')
+    `;
+    await db.exec`
+      INSERT INTO subscriptions (id, company_id, plan_name, mrr_amount, billing_cycle, status, start_date)
+      VALUES ('SUB-0000A', 'CMP-0000A', 'starter', 29.00, 'monthly', 'active', CURRENT_DATE)
+    `;
+    try {
+      const res = await customerHealthScores({ page: 1, pageSize: 100 });
+      const card = res.customers.find((c) => c.company_id === "CMP-0000A");
+      expect(card).toBeDefined();
+      expect(card!.plan_tier).toBe("starter");
+    } finally {
+      await db.exec`DELETE FROM subscriptions WHERE company_id = 'CMP-0000A'`;
+      await db.exec`DELETE FROM companies WHERE id = 'CMP-0000A'`;
+    }
+  });
+
   it("does not silently drop a company that has zero subscription rows", async () => {
     // A company with no subscription is not the same as a churned company —
     // per the endpoint's own spec, it must not disappear from results for any

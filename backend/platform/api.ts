@@ -401,7 +401,7 @@ export const customerHealthScores = api(
       return {
         company_id: c.id,
         company_name: c.name,
-        plan_tier: c.plan_tier,
+        plan_tier: c.plan_name,
         usage_score: health.usage_score,
         adoption_score: health.adoption_score,
         support_score: health.support_score,
