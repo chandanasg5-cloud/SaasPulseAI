@@ -114,4 +114,22 @@ describe("customerHealthScores", () => {
       expect(res.customers.some((c) => c.company_id === churnedRow.id)).toBe(false);
     }
   });
+
+  it("does not silently drop a company that has zero subscription rows", async () => {
+    // A company with no subscription is not the same as a churned company —
+    // per the endpoint's own spec, it must not disappear from results for any
+    // reason other than being churned. "CMP-0000" sorts before every seeded
+    // company id (they start at "CMP-0001"), so it lands on page 1 regardless
+    // of how many companies exist.
+    await db.exec`
+      INSERT INTO companies (id, name, industry, company_size, plan_tier, customer_stage, signup_date)
+      VALUES ('CMP-0000', 'No Subscription Co', 'other', 10, 'free', 'trial', CURRENT_DATE)
+    `;
+    try {
+      const res = await customerHealthScores({ page: 1, pageSize: 100 });
+      expect(res.customers.some((c) => c.company_id === "CMP-0000")).toBe(true);
+    } finally {
+      await db.exec`DELETE FROM companies WHERE id = 'CMP-0000'`;
+    }
+  });
 });

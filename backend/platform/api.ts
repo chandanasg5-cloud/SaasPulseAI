@@ -328,10 +328,12 @@ export const customerHealthScores = api(
 
     const companies: ActiveCompanyRow[] = [];
     for await (const r of db.query<ActiveCompanyRow>`
-      SELECT c.id, c.name, c.plan_tier, s.plan_name, s.status
+      SELECT c.id, c.name, c.plan_tier,
+        COALESCE(s.plan_name, 'none') AS plan_name,
+        COALESCE(s.status, 'none') AS status
       FROM companies c
-      JOIN subscriptions s ON s.company_id = c.id
-      WHERE NOT (s.status = 'canceled' AND s.end_date <= CURRENT_DATE)
+      LEFT JOIN subscriptions s ON s.company_id = c.id
+      WHERE s.id IS NULL OR NOT (s.status = 'canceled' AND s.end_date <= CURRENT_DATE)
       ORDER BY c.id
     `) {
       companies.push(r);
