@@ -25,6 +25,7 @@ import { computeRevenueScore } from "./metrics/revenueScore";
 import { computeHealthScore } from "./metrics/healthScore";
 import { computeRecommendedAction } from "./metrics/recommendedAction";
 import { ensureChurnPredicted } from "./churnPrediction";
+import { getCompanyProfile, type CompanyProfile, type CompanyProfileResult } from "./companyProfile";
 import type {
   CompanyRow as MetricsCompanyRow,
   MarketingSpendRow,
@@ -552,5 +553,29 @@ export const customerChurnRisk = api(
     const companies = allCards.slice(start, start + pageSize);
 
     return { companies, total };
+  },
+);
+
+interface CompanyProfileParams {
+  name: Query<string>;
+}
+
+// Encore's API metadata generator requires a named interface (not a union
+// type alias) as an endpoint's response type, so `CompanyProfileResult`
+// (a discriminated union, needed for ergonomic narrowing by callers like
+// this task's own tests and Task 5's chatTools.ts) can't be used directly
+// as this handler's declared return type. This wrapper interface adapts it
+// to a shape Encore can parse while leaving `CompanyProfileResult` and
+// `getCompanyProfile` untouched for non-HTTP callers.
+interface CompanyProfileApiResponse {
+  found: boolean;
+  company: CompanyProfile | null;
+}
+
+export const companyProfile = api(
+  { method: "GET", path: "/companies/profile", expose: true },
+  async (params: CompanyProfileParams): Promise<CompanyProfileApiResponse> => {
+    const result: CompanyProfileResult = await getCompanyProfile(params.name);
+    return result.found ? { found: true, company: result.company } : { found: false, company: null };
   },
 );
