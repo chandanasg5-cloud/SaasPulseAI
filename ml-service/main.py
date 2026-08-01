@@ -5,6 +5,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from xgboost import XGBClassifier
 
 app = FastAPI(title="SaaSPulse AI ML Service")
 logger = logging.getLogger("segmentation")
@@ -104,3 +107,116 @@ def _log_silhouette_scores(vectors: list[list[float]]) -> None:
         candidate_labels = candidate.fit_predict(vectors)
         score = silhouette_score(vectors, candidate_labels)
         logger.info("silhouette k=%d score=%.4f", k, score)
+
+
+CHURN_FEATURE_KEYS = [
+    "usage_score", "adoption_score", "support_score", "revenue_score",
+    "seat_penetration_score", "tenure_days", "recency_days",
+]
+
+
+class ChurnCompanyFeatures(BaseModel):
+    company_id: str
+    usage_score: float
+    adoption_score: float
+    support_score: float
+    revenue_score: float
+    seat_penetration_score: float
+    tenure_days: float
+    recency_days: float
+    churned: bool
+
+
+class ChurnPredictionRequest(BaseModel):
+    companies: list[ChurnCompanyFeatures]
+
+
+class ChurnPrediction(BaseModel):
+    company_id: str
+    churn_probability: float
+
+
+class ChurnMetrics(BaseModel):
+    accuracy: float
+    precision: float
+    recall: float
+    roc_auc: float
+
+
+class ChurnFeatureImportances(BaseModel):
+    usage_score: float
+    adoption_score: float
+    support_score: float
+    revenue_score: float
+    seat_penetration_score: float
+    tenure_days: float
+    recency_days: float
+
+
+class ChurnModelMetadata(BaseModel):
+    algorithm: str
+    algorithm_version: str
+    random_seed: int
+    generated_at: str
+    held_out_metrics: ChurnMetrics
+
+
+class ChurnPredictionResponse(BaseModel):
+    predictions: list[ChurnPrediction]
+    feature_importances: ChurnFeatureImportances
+    metadata: ChurnModelMetadata
+
+
+@app.post("/predict-churn")
+def predict_churn(request: ChurnPredictionRequest) -> ChurnPredictionResponse:
+    companies = request.companies
+    X = [[getattr(c, key) for key in CHURN_FEATURE_KEYS] for c in companies]
+    y = [1 if c.churned else 0 for c in companies]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=RANDOM_SEED, stratify=y,
+    )
+
+    eval_model = XGBClassifier(
+        n_estimators=100, max_depth=4, random_state=RANDOM_SEED, eval_metric="logloss",
+    )
+    eval_model.fit(X_train, y_train)
+    y_pred = eval_model.predict(X_test)
+    y_proba = eval_model.predict_proba(X_test)[:, 1]
+
+    metrics = ChurnMetrics(
+        accuracy=float(accuracy_score(y_test, y_pred)),
+        precision=float(precision_score(y_test, y_pred, zero_division=0)),
+        recall=float(recall_score(y_test, y_pred, zero_division=0)),
+        roc_auc=float(roc_auc_score(y_test, y_proba)),
+    )
+
+    final_model = XGBClassifier(
+        n_estimators=100, max_depth=4, random_state=RANDOM_SEED, eval_metric="logloss",
+    )
+    final_model.fit(X, y)
+
+    probabilities = final_model.predict_proba(X)[:, 1]
+    predictions = [
+        ChurnPrediction(company_id=c.company_id, churn_probability=float(p))
+        for c, p in zip(companies, probabilities)
+    ]
+
+    raw_importances = final_model.feature_importances_
+    feature_importances = ChurnFeatureImportances(
+        **{key: float(raw_importances[i]) for i, key in enumerate(CHURN_FEATURE_KEYS)}
+    )
+
+    metadata = ChurnModelMetadata(
+        algorithm="xgboost",
+        algorithm_version="v1",
+        random_seed=RANDOM_SEED,
+        generated_at=datetime.now(timezone.utc).isoformat(),
+        held_out_metrics=metrics,
+    )
+
+    return ChurnPredictionResponse(
+        predictions=predictions,
+        feature_importances=feature_importances,
+        metadata=metadata,
+    )

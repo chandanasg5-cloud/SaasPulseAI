@@ -63,3 +63,82 @@ def test_cluster_is_deterministic_across_calls():
     first_map = {a["company_id"]: a["cluster_id"] for a in first["assignments"]}
     second_map = {a["company_id"]: a["cluster_id"] for a in second["assignments"]}
     assert first_map == second_map
+
+
+import random
+
+
+def _make_churn_fixture():
+    rng = random.Random(123)
+    companies = []
+    for i in range(30):
+        companies.append({
+            "company_id": f"HLTH-{i}",
+            "usage_score": rng.uniform(18, 25),
+            "adoption_score": rng.uniform(18, 25),
+            "support_score": rng.uniform(18, 25),
+            "revenue_score": rng.uniform(12, 25),
+            "seat_penetration_score": rng.uniform(18, 25),
+            "tenure_days": rng.uniform(200, 800),
+            "recency_days": rng.uniform(0, 5),
+            "churned": False,
+        })
+    for i in range(10):
+        companies.append({
+            "company_id": f"RISK-{i}",
+            "usage_score": rng.uniform(0, 8),
+            "adoption_score": rng.uniform(0, 8),
+            "support_score": rng.uniform(5, 15),
+            "revenue_score": rng.uniform(0, 12),
+            "seat_penetration_score": rng.uniform(0, 8),
+            "tenure_days": rng.uniform(10, 100),
+            "recency_days": rng.uniform(30, 90),
+            "churned": True,
+        })
+    return companies
+
+
+CHURN_FIXTURE = _make_churn_fixture()
+
+
+def test_predict_churn_returns_probability_for_every_company():
+    response = client.post("/predict-churn", json={"companies": CHURN_FIXTURE})
+    assert response.status_code == 200
+    body = response.json()
+
+    assert len(body["predictions"]) == len(CHURN_FIXTURE)
+    predicted_ids = {p["company_id"] for p in body["predictions"]}
+    assert predicted_ids == {c["company_id"] for c in CHURN_FIXTURE}
+    for p in body["predictions"]:
+        assert 0.0 <= p["churn_probability"] <= 1.0
+
+
+def test_predict_churn_held_out_metrics_in_range():
+    response = client.post("/predict-churn", json={"companies": CHURN_FIXTURE})
+    metrics = response.json()["metadata"]["held_out_metrics"]
+    for key in ("accuracy", "precision", "recall", "roc_auc"):
+        assert 0.0 <= metrics[key] <= 1.0
+
+
+def test_predict_churn_feature_importances_sum_to_about_one():
+    response = client.post("/predict-churn", json={"companies": CHURN_FIXTURE})
+    importances = response.json()["feature_importances"]
+    total = sum(importances.values())
+    assert 0.99 <= total <= 1.01
+
+
+def test_predict_churn_is_deterministic_across_calls():
+    first = client.post("/predict-churn", json={"companies": CHURN_FIXTURE}).json()
+    second = client.post("/predict-churn", json={"companies": CHURN_FIXTURE}).json()
+    first_map = {p["company_id"]: p["churn_probability"] for p in first["predictions"]}
+    second_map = {p["company_id"]: p["churn_probability"] for p in second["predictions"]}
+    for cid in first_map:
+        assert first_map[cid] == second_map[cid]
+
+
+def test_predict_churn_reflects_underlying_risk_signal():
+    response = client.post("/predict-churn", json={"companies": CHURN_FIXTURE})
+    predictions = {p["company_id"]: p["churn_probability"] for p in response.json()["predictions"]}
+    healthy_avg = sum(predictions[c["company_id"]] for c in CHURN_FIXTURE if not c["churned"]) / 30
+    risk_avg = sum(predictions[c["company_id"]] for c in CHURN_FIXTURE if c["churned"]) / 10
+    assert risk_avg > healthy_avg
