@@ -2,6 +2,7 @@ import { api, Query } from "encore.dev/api";
 import type { Primitive } from "encore.dev/storage/sqldb";
 import { db } from "./db";
 import { ensureSeeded } from "./seed";
+import { ensureSegmented } from "./segmentation";
 import { ensureMarketingSpendSeeded } from "./marketingSpendSeed";
 import { computeMrrTrend } from "./metrics/mrrTrend";
 import { computeMrrWaterfall, type MrrWaterfall } from "./metrics/mrrWaterfall";
@@ -417,5 +418,74 @@ export const customerHealthScores = api(
     const customers = allCards.slice(start, start + pageSize);
 
     return { customers, total };
+  },
+);
+
+interface SegmentPredictionRow {
+  segment_label: string;
+  main_drivers: {
+    usage_score: number;
+    adoption_score: number;
+    support_score: number;
+    revenue_score: number;
+    seat_penetration_score: number;
+  };
+}
+
+interface SegmentSummary {
+  segment_label: string;
+  company_count: number;
+  pct_of_total: number;
+  avg_usage_score: number;
+  avg_adoption_score: number;
+  avg_support_score: number;
+  avg_revenue_score: number;
+  avg_seat_penetration_score: number;
+}
+
+const SEGMENT_ORDER = ["Power Users", "Expansion Opportunity", "High Value, Low Engagement", "At Risk"];
+
+function averageMetric(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+export const customerSegments = api(
+  { method: "GET", path: "/customers/segments", expose: true },
+  async (): Promise<{ segments: SegmentSummary[] }> => {
+    await ensureSegmented();
+
+    const rows: SegmentPredictionRow[] = [];
+    for await (const r of db.query<{ segment_label: string; main_drivers: string }>`
+      SELECT segment_label, main_drivers::text AS main_drivers
+      FROM ml_predictions
+      WHERE prediction_type = 'segment'
+    `) {
+      rows.push({ segment_label: r.segment_label, main_drivers: JSON.parse(r.main_drivers) });
+    }
+
+    const total = rows.length;
+    const bySegment = new Map<string, SegmentPredictionRow[]>();
+    for (const r of rows) {
+      const arr = bySegment.get(r.segment_label) ?? [];
+      arr.push(r);
+      bySegment.set(r.segment_label, arr);
+    }
+
+    const segments: SegmentSummary[] = SEGMENT_ORDER.map((label) => {
+      const members = bySegment.get(label) ?? [];
+      return {
+        segment_label: label,
+        company_count: members.length,
+        pct_of_total: total === 0 ? 0 : (members.length / total) * 100,
+        avg_usage_score: averageMetric(members.map((m) => m.main_drivers.usage_score)),
+        avg_adoption_score: averageMetric(members.map((m) => m.main_drivers.adoption_score)),
+        avg_support_score: averageMetric(members.map((m) => m.main_drivers.support_score)),
+        avg_revenue_score: averageMetric(members.map((m) => m.main_drivers.revenue_score)),
+        avg_seat_penetration_score: averageMetric(members.map((m) => m.main_drivers.seat_penetration_score)),
+      };
+    });
+
+    return { segments };
   },
 );

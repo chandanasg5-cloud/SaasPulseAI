@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { health, companiesCount, listCompanies, executiveOverview, productOverview } from "./api";
-import { customerHealthScores } from "./api";
+import { customerHealthScores, customerSegments } from "./api";
 import { db } from "./db";
 
 describe("health", () => {
@@ -155,5 +155,22 @@ describe("customerHealthScores", () => {
     } finally {
       await db.exec`DELETE FROM companies WHERE id = 'CMP-0000'`;
     }
+  });
+});
+
+describe("customerSegments", () => {
+  it("returns exactly 4 rows in fixed persona order with counts summing to total active companies", async () => {
+    const res = await customerSegments();
+    expect(res.segments).toHaveLength(4);
+    expect(res.segments.map((s) => s.segment_label)).toEqual([
+      "Power Users", "Expansion Opportunity", "High Value, Low Engagement", "At Risk",
+    ]);
+
+    const totalCount = res.segments.reduce((sum, s) => sum + s.company_count, 0);
+    const activeCompanies = await companiesCount();
+    expect(totalCount).toBe(activeCompanies.active_companies);
+
+    const totalPct = res.segments.reduce((sum, s) => sum + s.pct_of_total, 0);
+    expect(totalPct).toBeCloseTo(100, 1);
   });
 });
