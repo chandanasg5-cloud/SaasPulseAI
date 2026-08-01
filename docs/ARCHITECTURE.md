@@ -47,7 +47,7 @@ graph TB
 
 ## Request flow: an AI Copilot question
 
-1. `/copilot` (the project's only Client Component — SSE needs client-side
+1. `/copilot` (the only page-level Client Component — SSE needs client-side
    `fetch`+`ReadableStream`) POSTs `{messages: [...]}` to `POST /chat`
 2. The backend's function-calling loop (`agent.ts`) sends the conversation to
    Gemini with 5 tool declarations
