@@ -138,14 +138,15 @@ export async function doPredict(): Promise<void> {
     );
   }
 
+  const activeFeatures = features.filter((f) => !f.churned);
   const populationAverages: ChurnFeatureVector = {
-    usage_score: average(features.map((f) => f.usage_score)),
-    adoption_score: average(features.map((f) => f.adoption_score)),
-    support_score: average(features.map((f) => f.support_score)),
-    revenue_score: average(features.map((f) => f.revenue_score)),
-    seat_penetration_score: average(features.map((f) => f.seat_penetration_score)),
-    tenure_days: average(features.map((f) => f.tenure_days)),
-    recency_days: average(features.map((f) => f.recency_days)),
+    usage_score: average(activeFeatures.map((f) => f.usage_score)),
+    adoption_score: average(activeFeatures.map((f) => f.adoption_score)),
+    support_score: average(activeFeatures.map((f) => f.support_score)),
+    revenue_score: average(activeFeatures.map((f) => f.revenue_score)),
+    seat_penetration_score: average(activeFeatures.map((f) => f.seat_penetration_score)),
+    tenure_days: average(activeFeatures.map((f) => f.tenure_days)),
+    recency_days: average(activeFeatures.map((f) => f.recency_days)),
   };
 
   const importances: FeatureImportances = result.feature_importances;
