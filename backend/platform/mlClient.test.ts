@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { callClusterService } from "./mlClient";
+import { callClusterService, callChurnPredictionService } from "./mlClient";
 
 describe("callClusterService", () => {
   it("calls the real ml-service and returns assignments, centroids, and metadata", async () => {
@@ -30,5 +30,34 @@ describe("callClusterService", () => {
     }
     expect(result.metadata.algorithm).toBe("kmeans");
     expect(result.metadata.random_seed).toBe(42);
+  });
+});
+
+describe("callChurnPredictionService", () => {
+  it("calls the real ml-service and returns predictions, importances, and metadata", async () => {
+    const companies = [
+      ...Array.from({ length: 15 }, (_, i) => ({
+        company_id: `H-${i}`, usage_score: 22, adoption_score: 21, support_score: 20,
+        revenue_score: 18, seat_penetration_score: 20, tenure_days: 400, recency_days: 2,
+        churned: false,
+      })),
+      ...Array.from({ length: 5 }, (_, i) => ({
+        company_id: `R-${i}`, usage_score: 3, adoption_score: 4, support_score: 10,
+        revenue_score: 5, seat_penetration_score: 3, tenure_days: 40, recency_days: 60,
+        churned: true,
+      })),
+    ];
+
+    const result = await callChurnPredictionService(companies);
+
+    expect(result.predictions).toHaveLength(20);
+    for (const p of result.predictions) {
+      expect(p.churn_probability).toBeGreaterThanOrEqual(0);
+      expect(p.churn_probability).toBeLessThanOrEqual(1);
+    }
+    expect(result.metadata.algorithm).toBe("xgboost");
+    expect(result.metadata.random_seed).toBe(42);
+    expect(typeof result.metadata.held_out_metrics.accuracy).toBe("number");
+    expect(typeof result.feature_importances.usage_score).toBe("number");
   });
 });
