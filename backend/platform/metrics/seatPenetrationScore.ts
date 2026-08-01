@@ -1,12 +1,13 @@
 import type { ProductEventRow, UserRow } from "./types";
 import { countActiveUsers } from "./activeUsers";
 
-export function computeUsageScore(
+export function computeSeatPenetrationScore(
   companyUsers: UserRow[],
   companyEvents: ProductEventRow[],
+  companySize: number,
   now: Date,
 ): number {
-  if (companyUsers.length === 0) return 0;
+  if (companySize <= 0) return 0;
   const activeCount = countActiveUsers(companyUsers, companyEvents, now);
-  return (activeCount / companyUsers.length) * 25;
+  return Math.max(0, Math.min(25, (activeCount / companySize) * 25));
 }
