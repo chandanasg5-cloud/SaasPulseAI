@@ -131,3 +131,18 @@ export interface SegmentSummary {
 export interface SegmentsResponse {
   segments: SegmentSummary[];
 }
+
+export interface ChurnRiskCard {
+  company_id: string;
+  company_name: string;
+  churn_probability: number;
+  risk_level: string;
+  primary_risk_driver: string;
+  secondary_risk_driver: string;
+  recommendation: string;
+}
+
+export interface ChurnRiskResponse {
+  companies: ChurnRiskCard[];
+  total: number;
+}

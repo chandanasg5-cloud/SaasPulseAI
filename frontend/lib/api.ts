@@ -1,4 +1,4 @@
-import type { CompaniesResponse, ExecutiveOverview, ProductOverview, CustomerHealthScoresResponse, SegmentsResponse } from "./types";
+import type { CompaniesResponse, ExecutiveOverview, ProductOverview, CustomerHealthScoresResponse, SegmentsResponse, ChurnRiskResponse } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -29,5 +29,11 @@ export async function getCustomerHealthScores(page = 1, pageSize = 25): Promise<
 export async function getCustomerSegments(): Promise<SegmentsResponse> {
   const res = await fetch(`${API}/customers/segments`, { cache: "no-store" });
   if (!res.ok) throw new Error(`GET /customers/segments failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getCustomerChurnRisk(page = 1, pageSize = 25): Promise<ChurnRiskResponse> {
+  const res = await fetch(`${API}/customers/churn-risk?page=${page}&pageSize=${pageSize}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /customers/churn-risk failed: ${res.status}`);
   return res.json();
 }
