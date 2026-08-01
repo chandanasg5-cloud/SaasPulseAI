@@ -116,3 +116,18 @@ export interface CustomerHealthScoresResponse {
   customers: CustomerHealthCard[];
   total: number;
 }
+
+export interface SegmentSummary {
+  segment_label: string;
+  company_count: number;
+  pct_of_total: number;
+  avg_usage_score: number;
+  avg_adoption_score: number;
+  avg_support_score: number;
+  avg_revenue_score: number;
+  avg_seat_penetration_score: number;
+}
+
+export interface SegmentsResponse {
+  segments: SegmentSummary[];
+}
