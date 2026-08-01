@@ -94,7 +94,7 @@ rather than fabricating a profile.
 - `POST /chat`, SSE response, typed events:
   - `step` — `{"tool": "...", "args": {...}}` — fired when a tool is about to be
     called, so the UI can show "Checking churn risk..." style progress
-  - `text` — `{"delta": "..."}` — streamed answer text chunks
+  - `text` — `{"text": "..."}` — streamed answer text chunks
   - `error` — `{"message": "..."}` — Gemini failure after both models tried
   - `done` — `{}` — stream complete
 - Model fallback: try `gemini-2.5-flash` first; on error, retry the same round with
