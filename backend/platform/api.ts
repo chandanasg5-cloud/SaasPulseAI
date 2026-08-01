@@ -24,6 +24,7 @@ import { computeSupportScore } from "./metrics/supportScore";
 import { computeRevenueScore } from "./metrics/revenueScore";
 import { computeHealthScore } from "./metrics/healthScore";
 import { computeRecommendedAction } from "./metrics/recommendedAction";
+import { ensureChurnPredicted } from "./churnPrediction";
 import type {
   CompanyRow as MetricsCompanyRow,
   MarketingSpendRow,
@@ -487,5 +488,69 @@ export const customerSegments = api(
     });
 
     return { segments };
+  },
+);
+
+interface ChurnPredictionRow {
+  company_id: string;
+  company_name: string;
+  churn_probability: number;
+  recommendation: string;
+  main_drivers: string;
+}
+
+interface ChurnRiskCard {
+  company_id: string;
+  company_name: string;
+  churn_probability: number;
+  risk_level: string;
+  primary_risk_driver: string;
+  secondary_risk_driver: string;
+  recommendation: string;
+}
+
+interface CustomerChurnRiskParams {
+  page?: Query<number>;
+  pageSize?: Query<number>;
+}
+
+export const customerChurnRisk = api(
+  { method: "GET", path: "/customers/churn-risk", expose: true },
+  async (params: CustomerChurnRiskParams): Promise<{ companies: ChurnRiskCard[]; total: number }> => {
+    await ensureChurnPredicted();
+    const page = Math.max(1, params.page ?? 1);
+    const pageSize = Math.max(1, Math.min(params.pageSize ?? 25, 100));
+
+    const rows: ChurnPredictionRow[] = [];
+    for await (const r of db.query<ChurnPredictionRow>`
+      SELECT p.company_id, c.name AS company_name, p.churn_probability::float AS churn_probability,
+        p.recommendation, p.main_drivers::text AS main_drivers
+      FROM ml_predictions p
+      JOIN companies c ON c.id = p.company_id
+      WHERE p.prediction_type = 'churn_probability'
+    `) {
+      rows.push(r);
+    }
+
+    const allCards: ChurnRiskCard[] = rows
+      .map((r) => {
+        const drivers = JSON.parse(r.main_drivers);
+        return {
+          company_id: r.company_id,
+          company_name: r.company_name,
+          churn_probability: r.churn_probability,
+          risk_level: drivers.risk_level,
+          primary_risk_driver: drivers.primary_risk_driver,
+          secondary_risk_driver: drivers.secondary_risk_driver,
+          recommendation: r.recommendation,
+        };
+      })
+      .sort((a, b) => b.churn_probability - a.churn_probability);
+
+    const total = allCards.length;
+    const start = (page - 1) * pageSize;
+    const companies = allCards.slice(start, start + pageSize);
+
+    return { companies, total };
   },
 );

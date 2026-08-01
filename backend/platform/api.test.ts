@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { health, companiesCount, listCompanies, executiveOverview, productOverview } from "./api";
-import { customerHealthScores, customerSegments } from "./api";
+import { customerHealthScores, customerSegments, customerChurnRisk } from "./api";
 import { db } from "./db";
 
 describe("health", () => {
@@ -172,5 +172,27 @@ describe("customerSegments", () => {
 
     const totalPct = res.segments.reduce((sum, s) => sum + s.pct_of_total, 0);
     expect(totalPct).toBeCloseTo(100, 1);
+  });
+});
+
+describe("customerChurnRisk", () => {
+  it("returns active companies sorted by churn probability descending", async () => {
+    const res = await customerChurnRisk({ page: 1, pageSize: 100 });
+    expect(res.companies.length).toBeGreaterThan(0);
+    expect(res.total).toBeGreaterThan(0);
+
+    for (let i = 1; i < res.companies.length; i++) {
+      expect(res.companies[i].churn_probability).toBeLessThanOrEqual(res.companies[i - 1].churn_probability);
+    }
+
+    for (const c of res.companies) {
+      expect(["low", "medium", "high"]).toContain(c.risk_level);
+      expect(c.recommendation.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("paginates correctly", async () => {
+    const page1 = await customerChurnRisk({ page: 1, pageSize: 10 });
+    expect(page1.companies).toHaveLength(10);
   });
 });
