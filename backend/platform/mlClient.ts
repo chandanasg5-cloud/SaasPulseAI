@@ -1,3 +1,5 @@
+import { secret } from "encore.dev/config";
+
 export interface ClusterRequestCompany {
   company_id: string;
   usage_score: number;
@@ -34,7 +36,8 @@ export interface ClusterResponse {
   metadata: ClusterMetadata;
 }
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL ?? "http://localhost:8001";
+const mlServiceUrlSecret = secret("MlServiceUrl");
+const ML_SERVICE_URL = mlServiceUrlSecret() || "http://localhost:8001";
 
 export async function callClusterService(companies: ClusterRequestCompany[]): Promise<ClusterResponse> {
   const res = await fetch(`${ML_SERVICE_URL}/cluster`, {
