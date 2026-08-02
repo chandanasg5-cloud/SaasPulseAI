@@ -63,11 +63,24 @@ export function MrrWaterfallChart({ data }: { data: MrrWaterfall }) {
           width={64}
         />
         <Tooltip
-          formatter={(_value: number, _name: string, item: { payload?: WaterfallStep }) => [
-            formatGbp(item.payload?.displayValue ?? 0),
-            "MRR change",
-          ]}
-          contentStyle={{ background: "var(--chart-surface)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
+          content={({ active, payload }) => {
+            if (!active || !payload?.length) return null;
+            const step = payload.find((p) => p.dataKey === "value")?.payload as WaterfallStep | undefined;
+            if (!step) return null;
+            return (
+              <div
+                style={{
+                  background: "var(--chart-surface)",
+                  border: "1px solid var(--chart-grid)",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                }}
+              >
+                <div style={{ fontWeight: 600 }}>{step.label}</div>
+                <div>MRR change : {formatGbp(step.displayValue)}</div>
+              </div>
+            );
+          }}
         />
         <Bar dataKey="base" stackId="waterfall" fill="transparent" isAnimationActive={false} />
         <Bar dataKey="value" stackId="waterfall" radius={[4, 4, 4, 4]}>
