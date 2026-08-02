@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { callClusterService, callChurnPredictionService } from "./mlClient";
 
-describe("callClusterService", () => {
+// Gated: hits the real ml-service over the network, which Encore Cloud's
+// build-time test gate cannot reach (no secret/network access during that
+// step). Run locally with RUN_ML_SERVICE_TESTS=1.
+describe.skipIf(!process.env.RUN_ML_SERVICE_TESTS)("callClusterService", () => {
   it("calls the real ml-service and returns assignments, centroids, and metadata", async () => {
     const companies = [
       { company_id: "T-A1", usage_score: 24, adoption_score: 23, support_score: 20, revenue_score: 22, seat_penetration_score: 23 },
@@ -33,7 +36,7 @@ describe("callClusterService", () => {
   });
 });
 
-describe("callChurnPredictionService", () => {
+describe.skipIf(!process.env.RUN_ML_SERVICE_TESTS)("callChurnPredictionService", () => {
   it("calls the real ml-service and returns predictions, importances, and metadata", async () => {
     const companies = [
       ...Array.from({ length: 15 }, (_, i) => ({

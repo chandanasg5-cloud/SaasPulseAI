@@ -3,7 +3,9 @@ import { ensureSegmented, doSegment } from "./segmentation";
 import { ensureSeeded } from "./seed";
 import { db } from "./db";
 
-describe("ensureSegmented", () => {
+// Gated: hits the real ml-service over the network, which Encore Cloud's
+// build-time test gate cannot reach. Run locally with RUN_ML_SERVICE_TESTS=1.
+describe.skipIf(!process.env.RUN_ML_SERVICE_TESTS)("ensureSegmented", () => {
   it("persists one segment row per active company with all fields populated", async () => {
     await ensureSeeded();
     await ensureSegmented();
