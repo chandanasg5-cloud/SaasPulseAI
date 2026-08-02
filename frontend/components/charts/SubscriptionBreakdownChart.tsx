@@ -27,7 +27,7 @@ export function SubscriptionBreakdownChart({ data }: { data: SubscriptionBreakdo
         <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" horizontal={false} />
         <XAxis type="number" stroke="var(--chart-axis-muted)" fontSize={12} tickLine={false} axisLine={false} />
         <YAxis type="category" dataKey="name" hide />
-        <Tooltip contentStyle={{ background: "var(--chart-surface)", border: "1px solid var(--chart-grid)", borderRadius: 8 }} />
+        <Tooltip contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }} />
         <Legend formatter={(value: string) => TIER_LABELS[value] ?? value} />
         {data.map((item) => (
           <Bar

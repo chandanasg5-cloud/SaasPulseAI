@@ -44,7 +44,7 @@ export function FeatureUsageRankingChart({ data }: { data: FeatureUsageRow[] }) 
         />
         <Tooltip
           formatter={(value: number) => [value.toLocaleString(), "Events"]}
-          contentStyle={{ background: "var(--chart-surface)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
+          contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
         />
         <Bar dataKey="event_count" fill="var(--series-1)" radius={[0, 4, 4, 0]} />
       </BarChart>

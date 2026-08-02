@@ -12,7 +12,7 @@ export function CustomerGrowthChart({ data }: { data: CustomerGrowthPoint[] }) {
         <YAxis stroke="var(--chart-axis-muted)" fontSize={12} tickLine={false} axisLine={false} width={48} />
         <Tooltip
           formatter={(value: number) => [value.toLocaleString(), "Active customers"]}
-          contentStyle={{ background: "var(--chart-surface)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
+          contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
         />
         <Line type="monotone" dataKey="active_customers" stroke="var(--series-1)" strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
       </LineChart>

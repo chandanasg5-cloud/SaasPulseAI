@@ -92,6 +92,7 @@
   --chart-surface: #fcfcfb;
   --chart-grid: #e1e0d9;
   --chart-axis-muted: #898781;
+  --chart-ink: var(--foreground);
 
   --seq-1: #cde2fb; /* step 100 — recedes toward light surface at low value */
   --seq-2: #9ec5f4; /* step 200 */
@@ -114,6 +115,7 @@
     --chart-surface: #1a1a19;
     --chart-grid: #2c2c2a;
     --chart-axis-muted: #898781;
+    --chart-ink: oklch(0.985 0 0);
 
     --seq-1: #0d366b; /* step 700 — recedes toward dark surface at low value */
     --seq-2: #184f95; /* step 600 */
@@ -136,6 +138,7 @@
   --chart-surface: #1a1a19;
   --chart-grid: #2c2c2a;
   --chart-axis-muted: #898781;
+  --chart-ink: oklch(0.985 0 0);
 
   --seq-1: #0d366b;
   --seq-2: #184f95;

@@ -13,7 +13,7 @@ export function EngagementTrendChart({ data }: { data: EngagementTrendPoint[] })
         <XAxis dataKey="date" stroke="var(--chart-axis-muted)" fontSize={12} tickLine={false} axisLine={false} />
         <YAxis stroke="var(--chart-axis-muted)" fontSize={12} tickLine={false} axisLine={false} width={48} />
         <Tooltip
-          contentStyle={{ background: "var(--chart-surface)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
+          contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
         />
         <Legend formatter={(value: string) => SERIES_LABELS[value] ?? value} />
         <Line type="monotone" dataKey="dau" name="dau" stroke="var(--series-1)" strokeWidth={2} dot={false} />

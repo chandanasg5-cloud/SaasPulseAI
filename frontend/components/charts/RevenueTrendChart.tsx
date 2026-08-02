@@ -28,7 +28,7 @@ export function RevenueTrendChart({ data }: { data: RevenueTrendPoint[] }) {
         />
         <Tooltip
           formatter={(value: number) => [formatGbpCompact(value), "MRR"]}
-          contentStyle={{ background: "var(--chart-surface)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
+          contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
         />
         <Line type="monotone" dataKey="mrr" stroke="var(--series-1)" strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
       </LineChart>
