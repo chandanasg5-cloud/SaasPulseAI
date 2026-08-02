@@ -71,6 +71,7 @@ export function MrrWaterfallChart({ data }: { data: MrrWaterfall }) {
               <div
                 style={{
                   background: "var(--chart-surface)",
+                  color: "var(--foreground)",
                   border: "1px solid var(--chart-grid)",
                   borderRadius: 8,
                   padding: "8px 12px",
