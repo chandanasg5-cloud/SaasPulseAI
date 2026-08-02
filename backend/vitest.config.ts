@@ -11,5 +11,9 @@ export default defineConfig({
     // violations on companies_pkey. Disable file-level parallelism so files run
     // sequentially in a single process/worker instead.
     fileParallelism: false,
+    // The first test to call ensureSeeded() pays the full cost of seeding
+    // 1000 companies plus related rows; on Encore Cloud's build container
+    // this exceeds Vitest's 5000ms default.
+    testTimeout: 30000,
   },
 });
