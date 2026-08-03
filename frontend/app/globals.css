@@ -93,6 +93,9 @@
   --chart-grid: #e1e0d9;
   --chart-axis-muted: #898781;
   --chart-ink: var(--foreground);
+  --page-backdrop:
+    radial-gradient(ellipse 900px 600px at 8% -10%, rgba(42, 120, 214, 0.10), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 100% 105%, rgba(232, 123, 164, 0.08), transparent 60%);
 
   --seq-1: #cde2fb; /* step 100 — recedes toward light surface at low value */
   --seq-2: #9ec5f4; /* step 200 */
@@ -116,6 +119,9 @@
     --chart-grid: #2c2c2a;
     --chart-axis-muted: #898781;
     --chart-ink: oklch(0.985 0 0);
+    --page-backdrop:
+      radial-gradient(ellipse 900px 600px at 8% -10%, rgba(57, 135, 229, 0.14), transparent 60%),
+      radial-gradient(ellipse 900px 700px at 100% 105%, rgba(213, 81, 129, 0.10), transparent 60%);
 
     --seq-1: #0d366b; /* step 700 — recedes toward dark surface at low value */
     --seq-2: #184f95; /* step 600 */
@@ -139,6 +145,9 @@
   --chart-grid: #2c2c2a;
   --chart-axis-muted: #898781;
   --chart-ink: oklch(0.985 0 0);
+  --page-backdrop:
+    radial-gradient(ellipse 900px 600px at 8% -10%, rgba(57, 135, 229, 0.14), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 100% 105%, rgba(213, 81, 129, 0.10), transparent 60%);
 
   --seq-1: #0d366b;
   --seq-2: #184f95;
@@ -189,6 +198,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: var(--page-backdrop);
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
