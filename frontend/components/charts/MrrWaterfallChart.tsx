@@ -63,6 +63,7 @@ export function MrrWaterfallChart({ data }: { data: MrrWaterfall }) {
           width={64}
         />
         <Tooltip
+          cursor={false}
           content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const step = payload.find((p) => p.dataKey === "value")?.payload as WaterfallStep | undefined;
