@@ -29,11 +29,11 @@ export function CustomerCard({ customer }: { customer: CustomerHealthCard }) {
         </Badge>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div className="text-3xl font-semibold">
+        <div className="text-4xl font-bold">
           {Math.round(customer.overall_score)}
-          <span className="text-sm font-normal text-muted-foreground">/100</span>
+          <span className="text-base font-medium text-muted-foreground">/100</span>
         </div>
-        <p className="text-sm text-muted-foreground">{customer.recommended_action}</p>
+        <p className="text-base font-medium text-muted-foreground">{customer.recommended_action}</p>
       </CardContent>
     </Card>
   );

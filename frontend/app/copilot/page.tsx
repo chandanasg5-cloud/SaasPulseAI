@@ -88,7 +88,7 @@ export default function CopilotPage() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-6">
-      <h1 className="text-2xl font-bold">SaaSPulse AI — Analyst Copilot</h1>
+      <h1 className="text-3xl font-bold">SaaSPulse AI — Analyst Copilot</h1>
 
       <div className="space-y-3">
         {messages.map((m, i) => (

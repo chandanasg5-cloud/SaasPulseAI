@@ -19,20 +19,20 @@ export function SegmentCard({ segment }: { segment: SegmentSummary }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <div className="text-3xl font-semibold">{segment.company_count}</div>
-          <p className="text-sm text-muted-foreground">{segment.pct_of_total.toFixed(1)}% of customers</p>
+          <div className="text-4xl font-bold">{segment.company_count}</div>
+          <p className="text-base font-medium text-muted-foreground">{segment.pct_of_total.toFixed(1)}% of customers</p>
         </div>
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-          <dt className="text-muted-foreground">Usage</dt>
-          <dd className="text-right">{segment.avg_usage_score.toFixed(1)}</dd>
-          <dt className="text-muted-foreground">Adoption</dt>
-          <dd className="text-right">{segment.avg_adoption_score.toFixed(1)}</dd>
-          <dt className="text-muted-foreground">Support</dt>
-          <dd className="text-right">{segment.avg_support_score.toFixed(1)}</dd>
-          <dt className="text-muted-foreground">Revenue</dt>
-          <dd className="text-right">{segment.avg_revenue_score.toFixed(1)}</dd>
-          <dt className="text-muted-foreground">Seat Penetration</dt>
-          <dd className="text-right">{segment.avg_seat_penetration_score.toFixed(1)}</dd>
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+          <dt className="font-medium text-muted-foreground">Usage</dt>
+          <dd className="text-right font-semibold">{segment.avg_usage_score.toFixed(1)}</dd>
+          <dt className="font-medium text-muted-foreground">Adoption</dt>
+          <dd className="text-right font-semibold">{segment.avg_adoption_score.toFixed(1)}</dd>
+          <dt className="font-medium text-muted-foreground">Support</dt>
+          <dd className="text-right font-semibold">{segment.avg_support_score.toFixed(1)}</dd>
+          <dt className="font-medium text-muted-foreground">Revenue</dt>
+          <dd className="text-right font-semibold">{segment.avg_revenue_score.toFixed(1)}</dd>
+          <dt className="font-medium text-muted-foreground">Seat Penetration</dt>
+          <dd className="text-right font-semibold">{segment.avg_seat_penetration_score.toFixed(1)}</dd>
         </dl>
       </CardContent>
     </Card>

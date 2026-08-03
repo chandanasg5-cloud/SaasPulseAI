@@ -29,14 +29,14 @@ export function ChurnRiskCard({ company }: { company: ChurnRiskCardData }) {
         </Badge>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div className="text-3xl font-semibold">
+        <div className="text-4xl font-bold">
           {(company.churn_probability * 100).toFixed(0)}
-          <span className="text-sm font-normal text-muted-foreground">% churn probability</span>
+          <span className="text-base font-medium text-muted-foreground">% churn probability</span>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base font-medium text-muted-foreground">
           {company.primary_risk_driver} · {company.secondary_risk_driver}
         </p>
-        <p className="text-sm text-muted-foreground">{company.recommendation}</p>
+        <p className="text-base font-medium text-muted-foreground">{company.recommendation}</p>
       </CardContent>
     </Card>
   );

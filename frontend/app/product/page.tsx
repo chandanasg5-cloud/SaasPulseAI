@@ -24,15 +24,15 @@ export default async function ProductPage() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold">SaaSPulse AI — Product Analytics</h1>
+      <h1 className="text-3xl font-bold">SaaSPulse AI — Product Analytics</h1>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         {kpiTiles.map((kpi) => (
           <Card key={kpi.label}>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.label}</CardTitle>
+              <CardTitle className="text-sm font-semibold text-muted-foreground">{kpi.label}</CardTitle>
             </CardHeader>
-            <CardContent className="text-2xl font-semibold">{kpi.value}</CardContent>
+            <CardContent className="text-3xl font-bold">{kpi.value}</CardContent>
           </Card>
         ))}
       </div>
