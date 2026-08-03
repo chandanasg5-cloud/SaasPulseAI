@@ -1,5 +1,5 @@
 import type { SubscriptionEventRow } from "./types";
-import { endOfMonth, parseLocalDate, startOfMonth } from "./months";
+import { daysAgo, parseLocalDate } from "./months";
 
 export interface MrrWaterfall {
   starting_mrr: number;
@@ -11,20 +11,19 @@ export interface MrrWaterfall {
 }
 
 export function computeMrrWaterfall(events: SubscriptionEventRow[], now: Date): MrrWaterfall {
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
+  const windowStart = daysAgo(now, 30);
 
   const startingMrr = events
-    .filter((e) => parseLocalDate(e.event_date) < monthStart)
+    .filter((e) => parseLocalDate(e.event_date) < windowStart)
     .reduce((sum, e) => sum + e.mrr_change, 0);
 
-  const inMonth = events.filter((e) => {
+  const inWindow = events.filter((e) => {
     const d = parseLocalDate(e.event_date);
-    return d >= monthStart && d <= monthEnd;
+    return d >= windowStart && d <= now;
   });
 
   const sumByType = (type: SubscriptionEventRow["event_type"]) =>
-    inMonth.filter((e) => e.event_type === type).reduce((sum, e) => sum + e.mrr_change, 0);
+    inWindow.filter((e) => e.event_type === type).reduce((sum, e) => sum + e.mrr_change, 0);
 
   const newMrr = sumByType("new_subscription");
   const expansionMrr = sumByType("upgrade");

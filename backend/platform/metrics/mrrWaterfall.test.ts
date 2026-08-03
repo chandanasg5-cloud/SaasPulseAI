@@ -3,8 +3,8 @@ import { computeMrrWaterfall } from "./mrrWaterfall";
 import type { SubscriptionEventRow } from "./types";
 
 describe("computeMrrWaterfall", () => {
-  it("splits the current month's events by type and sums a prior starting balance", () => {
-    const now = new Date(2026, 6, 15); // July 2026
+  it("splits the trailing-30-day window's events by type and sums a prior starting balance", () => {
+    const now = new Date(2026, 6, 30); // July 30, 2026 — window is 2026-06-30..2026-07-30
     const events: SubscriptionEventRow[] = [
       { company_id: "CMP-0001", event_date: "2026-05-01", event_type: "new_subscription", mrr_change: 500 },
       { company_id: "CMP-0002", event_date: "2026-07-05", event_type: "new_subscription", mrr_change: 100 },
@@ -17,12 +17,22 @@ describe("computeMrrWaterfall", () => {
 
     const waterfall = computeMrrWaterfall(events, now);
 
-    expect(waterfall.starting_mrr).toBe(1000); // 500 + 200 + 300 (all before July)
+    expect(waterfall.starting_mrr).toBe(1000); // 500 + 200 + 300 (all before the 30-day window)
     expect(waterfall.new_mrr).toBe(100);
     expect(waterfall.expansion_mrr).toBe(50);
     expect(waterfall.contraction_mrr).toBe(-80);
     expect(waterfall.churned_mrr).toBe(-300);
     expect(waterfall.ending_mrr).toBe(1000 + 100 + 50 - 80 - 300);
+  });
+
+  it("excludes events older than 30 days from now", () => {
+    const now = new Date(2026, 6, 30);
+    const events: SubscriptionEventRow[] = [
+      { company_id: "CMP-0001", event_date: "2026-06-29", event_type: "new_subscription", mrr_change: 100 },
+    ];
+    const waterfall = computeMrrWaterfall(events, now);
+    expect(waterfall.starting_mrr).toBe(100);
+    expect(waterfall.new_mrr).toBe(0);
   });
 
   it("excludes renewal events from every bucket (mrr_change is always 0 for renewals)", () => {

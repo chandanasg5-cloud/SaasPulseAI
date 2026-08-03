@@ -18,6 +18,15 @@ export function trailingMonths(now: Date, count: number): Date[] {
   return months;
 }
 
+// Truncates `now` to local midnight first, then steps back `days` days, so the
+// result is a clean midnight boundary comparable against parseLocalDate's
+// local-midnight dates regardless of what time of day `now` carries.
+export function daysAgo(now: Date, days: number): Date {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  d.setDate(d.getDate() - days);
+  return d;
+}
+
 // DB date/timestamp columns come back as bare "YYYY-MM-DD" strings. `new Date(str)`
 // parses those per ISO 8601 as UTC midnight, while every boundary in this file
 // (startOfMonth, endOfMonth, trailingMonths) is built in local time via the

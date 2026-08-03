@@ -72,7 +72,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>MRR Waterfall (This Month)</CardTitle>
+            <CardTitle>MRR Waterfall (Last 30 Days)</CardTitle>
           </CardHeader>
           <CardContent>
             <MrrWaterfallChart data={charts.mrr_waterfall} />
