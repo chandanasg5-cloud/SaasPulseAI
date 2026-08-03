@@ -94,8 +94,10 @@
   --chart-axis-muted: #898781;
   --chart-ink: var(--foreground);
   --page-backdrop:
-    radial-gradient(ellipse 900px 600px at 8% -10%, rgba(42, 120, 214, 0.10), transparent 60%),
-    radial-gradient(ellipse 900px 700px at 100% 105%, rgba(232, 123, 164, 0.08), transparent 60%);
+    radial-gradient(circle, rgba(42, 120, 214, 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse 1000px 650px at 8% -10%, rgba(42, 120, 214, 0.14), transparent 60%),
+    radial-gradient(ellipse 1000px 750px at 100% 105%, rgba(232, 123, 164, 0.12), transparent 60%);
+  --page-backdrop-size: 28px 28px, auto, auto;
   --nav-tint: rgba(42, 120, 214, 0.06);
 
   --seq-1: #cde2fb; /* step 100 — recedes toward light surface at low value */
@@ -153,8 +155,10 @@
     --chart-axis-muted: #898781;
     --chart-ink: oklch(0.985 0 0);
     --page-backdrop:
-      radial-gradient(ellipse 900px 600px at 8% -10%, rgba(57, 135, 229, 0.14), transparent 60%),
-      radial-gradient(ellipse 900px 700px at 100% 105%, rgba(213, 81, 129, 0.10), transparent 60%);
+      radial-gradient(circle, rgba(57, 135, 229, 0.10) 1px, transparent 1px),
+      radial-gradient(ellipse 1000px 650px at 8% -10%, rgba(57, 135, 229, 0.20), transparent 60%),
+      radial-gradient(ellipse 1000px 750px at 100% 105%, rgba(213, 81, 129, 0.15), transparent 60%);
+    --page-backdrop-size: 28px 28px, auto, auto;
     --nav-tint: rgba(57, 135, 229, 0.10);
 
     --seq-1: #0d366b; /* step 700 — recedes toward dark surface at low value */
@@ -212,8 +216,10 @@
   --chart-axis-muted: #898781;
   --chart-ink: oklch(0.985 0 0);
   --page-backdrop:
-    radial-gradient(ellipse 900px 600px at 8% -10%, rgba(57, 135, 229, 0.14), transparent 60%),
-    radial-gradient(ellipse 900px 700px at 100% 105%, rgba(213, 81, 129, 0.10), transparent 60%);
+    radial-gradient(circle, rgba(57, 135, 229, 0.10) 1px, transparent 1px),
+    radial-gradient(ellipse 1000px 650px at 8% -10%, rgba(57, 135, 229, 0.20), transparent 60%),
+    radial-gradient(ellipse 1000px 750px at 100% 105%, rgba(213, 81, 129, 0.15), transparent 60%);
+  --page-backdrop-size: 28px 28px, auto, auto;
   --nav-tint: rgba(57, 135, 229, 0.10);
 
   --seq-1: #0d366b;
@@ -266,6 +272,7 @@
   body {
     @apply bg-background text-foreground;
     background-image: var(--page-backdrop);
+    background-size: var(--page-backdrop-size);
     background-attachment: fixed;
   }
   html {
