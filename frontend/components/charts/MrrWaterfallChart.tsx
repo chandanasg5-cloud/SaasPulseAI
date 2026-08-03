@@ -85,7 +85,7 @@ export function MrrWaterfallChart({ data }: { data: MrrWaterfall }) {
           }}
         />
         <Bar dataKey="base" stackId="waterfall" fill="transparent" isAnimationActive={false} />
-        <Bar dataKey="value" stackId="waterfall" radius={[4, 4, 4, 4]}>
+        <Bar dataKey="value" stackId="waterfall">
           {steps.map((step) => (
             <Cell key={step.label} fill={KIND_COLOR[step.kind]} />
           ))}
