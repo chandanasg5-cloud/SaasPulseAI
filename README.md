@@ -20,7 +20,7 @@ learning and a conversational AI analyst:
    deterministic recommended action.
 4. **Customer Segmentation** (`/segments`) — real k-means clustering
    (scikit-learn) groups active companies into 4 personas: Power Users,
-   Expansion Opportunity, High Value/Low Engagement, and At Risk.
+   Expansion Opportunity, High Value, Low Engagement, and At Risk.
 5. **Churn Prediction** (`/churn-risk`) — a real XGBoost classifier trained on
    actual churn outcomes, with validated held-out accuracy/precision/recall/AUC,
    predicting each active company's churn probability with explainable drivers.
