@@ -25,7 +25,7 @@ export default async function ChurnRiskPage({
 
       {companies.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No companies match &quot;{q}&quot;.
+          {total === 0 && q ? <>No companies match &quot;{q}&quot;.</> : <>No companies found.</>}
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

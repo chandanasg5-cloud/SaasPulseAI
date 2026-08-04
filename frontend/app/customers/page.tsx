@@ -25,7 +25,7 @@ export default async function CustomersPage({
 
       {customers.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No customers match &quot;{q}&quot;.
+          {total === 0 && q ? <>No customers match &quot;{q}&quot;.</> : <>No customers found.</>}
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

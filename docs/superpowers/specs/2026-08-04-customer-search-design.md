@@ -27,8 +27,9 @@ scoring logic) and client-side filtering (only sees the current page).
 - Previous/Next links preserve the active `q`.
 - When a query is active, a "Clear" link next to the form returns to the
   unfiltered page.
-- If nothing matches, the page shows: `No customers match "<query>".`
-  (Churn Risk page: `No companies match "<query>".`)
+- If an active query has zero total matches, the page shows: `No customers match "<query>".`
+  (Churn Risk page: `No companies match "<query>".`) Any other empty page (e.g., hand-edited
+  out-of-range page URL) shows the generic fallback: `No customers found.` / `No companies found.`
 - Empty or whitespace-only `q` behaves as no filter.
 
 ## Changes
