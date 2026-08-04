@@ -20,8 +20,9 @@ export async function getProductOverview(): Promise<ProductOverview> {
   return res.json();
 }
 
-export async function getCustomerHealthScores(page = 1, pageSize = 25): Promise<CustomerHealthScoresResponse> {
-  const res = await fetch(`${API}/customers/health-scores?page=${page}&pageSize=${pageSize}`, { cache: "no-store" });
+export async function getCustomerHealthScores(page = 1, pageSize = 25, q?: string): Promise<CustomerHealthScoresResponse> {
+  const search = q && q.trim() ? `&q=${encodeURIComponent(q.trim())}` : "";
+  const res = await fetch(`${API}/customers/health-scores?page=${page}&pageSize=${pageSize}${search}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`GET /customers/health-scores failed: ${res.status}`);
   return res.json();
 }
@@ -32,8 +33,9 @@ export async function getCustomerSegments(): Promise<SegmentsResponse> {
   return res.json();
 }
 
-export async function getCustomerChurnRisk(page = 1, pageSize = 25): Promise<ChurnRiskResponse> {
-  const res = await fetch(`${API}/customers/churn-risk?page=${page}&pageSize=${pageSize}`, { cache: "no-store" });
+export async function getCustomerChurnRisk(page = 1, pageSize = 25, q?: string): Promise<ChurnRiskResponse> {
+  const search = q && q.trim() ? `&q=${encodeURIComponent(q.trim())}` : "";
+  const res = await fetch(`${API}/customers/churn-risk?page=${page}&pageSize=${pageSize}${search}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`GET /customers/churn-risk failed: ${res.status}`);
   return res.json();
 }
