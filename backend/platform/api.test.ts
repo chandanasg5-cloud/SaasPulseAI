@@ -156,6 +156,27 @@ describe("customerHealthScores", () => {
       await db.exec`DELETE FROM companies WHERE id = 'CMP-0000'`;
     }
   });
+
+  it("filters by company name case-insensitively with q, and total reflects the filtered count", async () => {
+    await db.exec`
+      INSERT INTO companies (id, name, industry, company_size, plan_tier, customer_stage, signup_date)
+      VALUES ('CMP-0000Q', 'Zebra Search Target', 'other', 10, 'free', 'trial', CURRENT_DATE)
+    `;
+    try {
+      const res = await customerHealthScores({ page: 1, pageSize: 25, q: "zebra search" });
+      expect(res.total).toBe(1);
+      expect(res.customers).toHaveLength(1);
+      expect(res.customers[0].company_name).toBe("Zebra Search Target");
+    } finally {
+      await db.exec`DELETE FROM companies WHERE id = 'CMP-0000Q'`;
+    }
+  });
+
+  it("treats a whitespace-only q as no filter", async () => {
+    const unfiltered = await customerHealthScores({ page: 1, pageSize: 10 });
+    const blank = await customerHealthScores({ page: 1, pageSize: 10, q: "   " });
+    expect(blank.total).toBe(unfiltered.total);
+  });
 });
 
 // Gated: hits the real ml-service over the network, which Encore Cloud's
@@ -196,5 +217,19 @@ describe.skipIf(!process.env.RUN_ML_SERVICE_TESTS)("customerChurnRisk", () => {
   it("paginates correctly", async () => {
     const page1 = await customerChurnRisk({ page: 1, pageSize: 10 });
     expect(page1.companies).toHaveLength(10);
+  });
+
+  it("filters by company name with q and keeps probability-descending order", async () => {
+    const all = await customerChurnRisk({ page: 1, pageSize: 100 });
+    const target = all.companies[0].company_name;
+    const res = await customerChurnRisk({ page: 1, pageSize: 100, q: target.slice(0, 4).toLowerCase() });
+    expect(res.total).toBeGreaterThan(0);
+    expect(res.total).toBeLessThanOrEqual(all.total);
+    for (const c of res.companies) {
+      expect(c.company_name.toLowerCase()).toContain(target.slice(0, 4).toLowerCase());
+    }
+    for (let i = 1; i < res.companies.length; i++) {
+      expect(res.companies[i].churn_probability).toBeLessThanOrEqual(res.companies[i - 1].churn_probability);
+    }
   });
 });

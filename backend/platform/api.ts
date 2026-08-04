@@ -24,6 +24,7 @@ import { computeSupportScore } from "./metrics/supportScore";
 import { computeRevenueScore } from "./metrics/revenueScore";
 import { computeHealthScore } from "./metrics/healthScore";
 import { computeRecommendedAction } from "./metrics/recommendedAction";
+import { filterCardsByCompanyName } from "./metrics/filterCardsByCompanyName";
 import { ensureChurnPredicted } from "./churnPrediction";
 import { getCompanyProfile, type CompanyProfile, type CompanyProfileResult } from "./companyProfile";
 import type {
@@ -319,6 +320,7 @@ interface CustomerHealthCard {
 interface CustomerHealthScoresParams {
   page?: Query<number>;
   pageSize?: Query<number>;
+  q?: Query<string>;
 }
 
 export const customerHealthScores = api(
@@ -415,9 +417,10 @@ export const customerHealthScores = api(
       };
     });
 
-    const total = allCards.length;
+    const filtered = filterCardsByCompanyName(allCards, params.q);
+    const total = filtered.length;
     const start = (page - 1) * pageSize;
-    const customers = allCards.slice(start, start + pageSize);
+    const customers = filtered.slice(start, start + pageSize);
 
     return { customers, total };
   },
@@ -513,6 +516,7 @@ interface ChurnRiskCard {
 interface CustomerChurnRiskParams {
   page?: Query<number>;
   pageSize?: Query<number>;
+  q?: Query<string>;
 }
 
 export const customerChurnRisk = api(
@@ -548,9 +552,10 @@ export const customerChurnRisk = api(
       })
       .sort((a, b) => b.churn_probability - a.churn_probability);
 
-    const total = allCards.length;
+    const filtered = filterCardsByCompanyName(allCards, params.q);
+    const total = filtered.length;
     const start = (page - 1) * pageSize;
-    const companies = allCards.slice(start, start + pageSize);
+    const companies = filtered.slice(start, start + pageSize);
 
     return { companies, total };
   },
