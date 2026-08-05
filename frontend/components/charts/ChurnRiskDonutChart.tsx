@@ -32,6 +32,7 @@ export function ChurnRiskDonutChart({ distribution }: { distribution: ChurnRiskD
           </Pie>
           <Tooltip
             formatter={(value: number, name: string) => [`${value.toLocaleString()} customers`, name]}
+            itemStyle={{ color: "var(--chart-ink)" }}
             contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
           />
         </PieChart>
