@@ -23,7 +23,7 @@ export default async function ProductPage() {
   ];
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold">SaaSPulse AI — Product Analytics</h1>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
@@ -74,6 +74,6 @@ export default async function ProductPage() {
           </CardContent>
         </Card>
       </div>
-    </main>
+    </div>
   );
 }

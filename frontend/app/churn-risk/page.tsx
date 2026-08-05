@@ -18,7 +18,7 @@ export default async function ChurnRiskPage({
   const qSuffix = q ? `&q=${encodeURIComponent(q)}` : "";
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold">SaaSPulse AI — Churn Risk</h1>
 
       <SearchBar action="/churn-risk" query={q} />
@@ -54,6 +54,6 @@ export default async function ChurnRiskPage({
           Next →
         </a>
       </div>
-    </main>
+    </div>
   );
 }

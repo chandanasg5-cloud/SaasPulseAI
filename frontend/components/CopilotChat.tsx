@@ -87,7 +87,7 @@ export function CopilotChat({ initialQuestion }: { initialQuestion?: string }) {
   }
 
   return (
-    <main className="mx-auto max-w-3xl space-y-4 p-6">
+    <div className="mx-auto max-w-3xl space-y-4 p-6">
       <h1 className="text-3xl font-bold">SaaSPulse AI — Analyst Copilot</h1>
 
       <div className="space-y-3">
@@ -121,6 +121,6 @@ export function CopilotChat({ initialQuestion }: { initialQuestion?: string }) {
           Send
         </button>
       </form>
-    </main>
+    </div>
   );
 }

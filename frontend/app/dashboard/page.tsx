@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   const deltas = computeKpiDeltas(charts.revenue_trend, charts.customer_growth);
 
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-6 p-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
       <h1 className="text-3xl font-bold">Executive Overview</h1>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Churn Risk Distribution</CardTitle>
-            <p className="text-sm text-muted-foreground">All customers</p>
+            <p className="text-sm text-muted-foreground">Active customers</p>
           </CardHeader>
           <CardContent>
             <ChurnRiskDonutChart distribution={churnDist} />
@@ -122,6 +122,6 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
