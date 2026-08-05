@@ -82,6 +82,11 @@ Response: `{ companies: [{ company_id, company_name, churn_probability, risk_lev
 Active companies only, sorted by `churn_probability` descending (highest risk
 first).
 
+### `GET /customers/churn-risk/distribution`
+No params. Response: `{ high: number, medium: number, low: number, total: number }`
+— count of active companies at each churn risk level (`high + medium + low ===
+total`). Powers the Churn Risk Distribution donut on the Overview dashboard.
+
 ## AI Analyst Copilot (Module 6)
 
 ### `GET /companies/profile?name=`
