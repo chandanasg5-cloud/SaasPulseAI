@@ -37,6 +37,7 @@ export function SegmentsDonutChart({ segments }: { segments: SegmentSummary[] })
         <Tooltip
           formatter={(value: number, name: string) => [`${value.toLocaleString()} companies`, name]}
           itemStyle={{ color: "var(--chart-ink)" }}
+          wrapperStyle={{ zIndex: 10 }}
           contentStyle={{ background: "var(--chart-surface)", color: "var(--chart-ink)", border: "1px solid var(--chart-grid)", borderRadius: 8 }}
         />
       </PieChart>
