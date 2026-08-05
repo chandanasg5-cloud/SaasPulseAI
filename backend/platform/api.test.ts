@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { health, companiesCount, listCompanies, executiveOverview, productOverview } from "./api";
-import { customerHealthScores, customerSegments, customerChurnRisk } from "./api";
+import { customerHealthScores, customerSegments, customerChurnRisk, churnRiskDistribution } from "./api";
 import { db } from "./db";
 
 describe("health", () => {
@@ -231,5 +231,18 @@ describe.skipIf(!process.env.RUN_ML_SERVICE_TESTS)("customerChurnRisk", () => {
     for (let i = 1; i < res.companies.length; i++) {
       expect(res.companies[i].churn_probability).toBeLessThanOrEqual(res.companies[i - 1].churn_probability);
     }
+  });
+});
+
+// Gated: hits the real ml-service over the network, which Encore Cloud's
+// build-time test gate cannot reach. Run locally with RUN_ML_SERVICE_TESTS=1.
+describe.skipIf(!process.env.RUN_ML_SERVICE_TESTS)("churnRiskDistribution", () => {
+  it("returns per-level counts that sum to total and match the paginated endpoint", async () => {
+    const dist = await churnRiskDistribution();
+    expect(dist.total).toBeGreaterThan(0);
+    expect(dist.high + dist.medium + dist.low).toBe(dist.total);
+
+    const paginated = await customerChurnRisk({ page: 1, pageSize: 1 });
+    expect(dist.total).toBe(paginated.total);
   });
 });

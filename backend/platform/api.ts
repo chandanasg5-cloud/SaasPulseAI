@@ -561,6 +561,31 @@ export const customerChurnRisk = api(
   },
 );
 
+interface ChurnRiskDistributionResponse {
+  high: number;
+  medium: number;
+  low: number;
+  total: number;
+}
+
+export const churnRiskDistribution = api(
+  { method: "GET", path: "/customers/churn-risk/distribution", expose: true },
+  async (): Promise<ChurnRiskDistributionResponse> => {
+    await ensureChurnPredicted();
+    const counts = { high: 0, medium: 0, low: 0 };
+    for await (const r of db.query<{ main_drivers: string }>`
+      SELECT p.main_drivers::text AS main_drivers
+      FROM ml_predictions p
+      JOIN companies c ON c.id = p.company_id
+      WHERE p.prediction_type = 'churn_probability'
+    `) {
+      const level = JSON.parse(r.main_drivers).risk_level as string;
+      if (level === "high" || level === "medium" || level === "low") counts[level] += 1;
+    }
+    return { ...counts, total: counts.high + counts.medium + counts.low };
+  },
+);
+
 interface CompanyProfileParams {
   name: Query<string>;
 }

@@ -146,3 +146,10 @@ export interface ChurnRiskResponse {
   companies: ChurnRiskCard[];
   total: number;
 }
+
+export interface ChurnRiskDistribution {
+  high: number;
+  medium: number;
+  low: number;
+  total: number;
+}

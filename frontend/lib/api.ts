@@ -1,4 +1,4 @@
-import type { CompaniesResponse, ExecutiveOverview, ProductOverview, CustomerHealthScoresResponse, SegmentsResponse, ChurnRiskResponse } from "./types";
+import type { CompaniesResponse, ExecutiveOverview, ProductOverview, CustomerHealthScoresResponse, SegmentsResponse, ChurnRiskResponse, ChurnRiskDistribution } from "./types";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -37,5 +37,11 @@ export async function getCustomerChurnRisk(page = 1, pageSize = 25, q?: string):
   const search = q && q.trim() ? `&q=${encodeURIComponent(q.trim())}` : "";
   const res = await fetch(`${API}/customers/churn-risk?page=${page}&pageSize=${pageSize}${search}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`GET /customers/churn-risk failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getChurnRiskDistribution(): Promise<ChurnRiskDistribution> {
+  const res = await fetch(`${API}/customers/churn-risk/distribution`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`GET /customers/churn-risk/distribution failed: ${res.status}`);
   return res.json();
 }
